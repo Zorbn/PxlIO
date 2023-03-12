@@ -9,10 +9,24 @@ add_subdirectory(deps/glad)
 
 add_executable(
     PxlRnd
-    src/main.cpp
-    src/Renderer.h
-    src/SpriteBatch.h
-    src/GLRenderer.cpp src/GLRenderer.h
+    src/Main.cpp
+    src/Renderer.hpp
+    src/SpriteBatch.hpp
+    src/ImageLoader.cpp src/ImageLoader.hpp
+
+    src/OpenGL/GLRenderer.cpp src/OpenGL/GLRenderer.hpp
+
+    src/Vulkan/Buffer.cpp src/Vulkan/Buffer.hpp
+    src/Vulkan/Commands.cpp src/Vulkan/Commands.hpp
+    src/Vulkan/Image.cpp src/Vulkan/Image.hpp
+    src/Vulkan/Pipeline.cpp src/Vulkan/Pipeline.hpp
+    src/Vulkan/VKRenderer.cpp src/Vulkan/VKRenderer.hpp
+    src/Vulkan/RenderPass.cpp src/Vulkan/RenderPass.hpp
+    src/Vulkan/Swapchain.cpp src/Vulkan/Swapchain.hpp
+    src/Vulkan/UniformBuffer.hpp
+    src/Vulkan/QueueFamilyIndices.hpp
+    src/Vulkan/Model.hpp
+    src/Vulkan/HeaderImpls.cpp
 )
 
 if(EMSCRIPTEN)
@@ -28,7 +42,7 @@ string(LENGTH "${CMAKE_SOURCE_DIR}/" SOURCE_PATH_SIZE)
 add_definitions("-DSOURCE_PATH_SIZE=${SOURCE_PATH_SIZE}")
 
 # Find packages, the following line is only necessary for VCPKG users.
-set(VCPKG_TARGET_TRIPLET x64-windows-static)
+# set(VCPKG_TARGET_TRIPLET x64-windows-static)
 include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 
 if(EMSCRIPTEN)
@@ -45,7 +59,11 @@ if(EMSCRIPTEN)
 else()
     find_package(SDL2 CONFIG REQUIRED)
     find_package(SDL2_image CONFIG REQUIRED)
+
     find_package(glm CONFIG REQUIRED)
+
+    find_package(Vulkan REQUIRED)
+    find_package(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
 
     target_link_libraries(
         PxlRnd PRIVATE
@@ -53,7 +71,11 @@ else()
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
         $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>
         glm::glm
+
         glad
+
+        Vulkan::Vulkan
+        unofficial::vulkan-memory-allocator::vulkan-memory-allocator
     )
 endif()
 

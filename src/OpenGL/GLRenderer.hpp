@@ -10,7 +10,8 @@
 #include <glad/glad.h>
 #endif
 
-#include "Renderer.h"
+#include "../Renderer.hpp"
+#include "../ImageLoader.hpp"
 
 struct GLModel
 {

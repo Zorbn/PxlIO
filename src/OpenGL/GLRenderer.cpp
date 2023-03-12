@@ -1,4 +1,4 @@
-#include "GLRenderer.h"
+#include "GLRenderer.hpp"
 
 #include <stdexcept>
 #include <cmath>
@@ -352,18 +352,9 @@ void GLRenderer::EndDrawing()
 
 SpriteBatch GLRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites)
 {
-	SDL_Surface *loadedSurface = IMG_Load(texturePath.c_str());
-
-	if (!loadedSurface)
-	{
-		RUNTIME_ERROR(std::string("Failed to load: ") + texturePath);
-	}
-
-	SDL_Surface *surface = SDL_ConvertSurfaceFormat(loadedSurface, SDL_PIXELFORMAT_RGBA32, 0);
-	SDL_FreeSurface(loadedSurface);
+	SDL_Surface *surface = LoadSurface(texturePath);
 
 	auto data = reinterpret_cast<uint8_t *>(surface->pixels);
-	uint32_t textureChannelCount = surface->format->BitsPerPixel;
 	auto textureWidth = surface->w;
 	auto textureHeight = surface->h;
 	auto format = GL_RGBA;

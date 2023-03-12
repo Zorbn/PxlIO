@@ -11,11 +11,8 @@
 
 #include <glm/glm.hpp>
 
-#include "SpriteBatch.h"
-
-#define RUNTIME_ERROR(message)                                                                                                \
-	std::cout << "Error in " << std::string(__FILE__).substr(SOURCE_PATH_SIZE) << "@" << __LINE__ << ": " << message << "\n"; \
-	exit(1)
+#include "Error.hpp"
+#include "SpriteBatch.hpp"
 
 const float zNear = 0.0f;
 const float zFar = 1000.0f;

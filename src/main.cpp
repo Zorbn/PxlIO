@@ -3,7 +3,7 @@
 #include <chrono>
 #include <cstdlib>
 
-#include "GLRenderer.h"
+#include "OpenGL/GLRenderer.hpp"
 
 int main(int argc, char **argv)
 {
