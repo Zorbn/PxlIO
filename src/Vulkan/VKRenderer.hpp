@@ -33,13 +33,14 @@
 #include "UniformBuffer.hpp"
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
-                                      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-                                      const VkAllocationCallbacks* pAllocator,
-                                      VkDebugUtilsMessengerEXT* pDebugMessenger);
+                                      const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+                                      const VkAllocationCallbacks *pAllocator,
+                                      VkDebugUtilsMessengerEXT *pDebugMessenger);
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
-                                   const VkAllocationCallbacks* pAllocator);
+                                   const VkAllocationCallbacks *pAllocator);
 
-struct VulkanState {
+struct VulkanState
+{
     VkPhysicalDevice physicalDevice;
     VkDevice device;
     VkSurfaceKHR surface;
@@ -50,23 +51,27 @@ struct VulkanState {
     uint32_t maxFramesInFlight;
 };
 
-class VKRenderer {
+class VKRenderer : Renderer
+{
 public:
-    void
-    Run(const std::string& windowTitle, const uint32_t windowWidth, const uint32_t windowHeight,
-        const uint32_t maxFramesInFlight,
-        std::function<void(VulkanState& vulkanState, SDL_Window* window, int32_t width,
-                           int32_t height)>
-            initCallback,
-        std::function<void(VulkanState& vulkanState)> updateCallback,
-        std::function<void(VulkanState& vulkanState, VkCommandBuffer commandBuffer,
-                           uint32_t imageIndex, uint32_t currentFrame)>
-            renderCallback,
-        std::function<void(VulkanState& vulkanState, int32_t width, int32_t height)> resizeCallback,
-        std::function<void(VulkanState& vulkanState)> cleanupCallback);
+    VKRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight,
+               int32_t viewWidth, int32_t viewHeight, bool enableVsync = true);
+    ~VKRenderer();
+
+    void ResizeWindow(int width, int height) override;
+    SDL_Window *GetWindowPtr() override;
+
+    void SetBackgroundColor(float r, float g, float b) override;
+    void SetScreenBackgroundColor(float r, float g, float b) override;
+    void BeginDrawing() override;
+    void EndDrawing() override;
+
+    SpriteBatch CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites) override;
+    void DrawSpriteBatch(SpriteBatch &spriteBatch) override;
+    void DestroySpriteBatch(SpriteBatch &spriteBatch) override;
 
 private:
-    SDL_Window* window;
+    SDL_Window *window;
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
@@ -78,38 +83,23 @@ private:
     std::vector<VkSemaphore> renderFinishedSemaphores;
     std::vector<VkFence> inFlightFences;
     uint32_t currentFrame = 0;
+    uint32_t currentImageIndex = 0;
 
     bool framebufferResized = false;
 
-    void InitWindow(const std::string& windowTitle, const uint32_t windowWidth,
+    void InitWindow(const std::string &windowTitle, const uint32_t windowWidth,
                     const uint32_t windowHeight);
 
-    static void FramebufferResizeCallback(SDL_Window* window, int width, int height);
-
-    void InitVulkan(const uint32_t maxFramesInFlight,
-                    std::function<void(VulkanState& vulkanState, SDL_Window* window, int32_t width,
-                                       int32_t height)>
-                        initCallback);
+    void InitVulkan(const uint32_t maxFramesInFlight);
     void CreateInstance();
     void CreateAllocator();
-    void createLogicalDevice();
+    void CreateLogicalDevice();
 
-    void MainLoop(std::function<void(VulkanState& vulkanState, VkCommandBuffer commandBuffer,
-                                     uint32_t imageIndex, uint32_t currentFrame)>
-                      renderCallback,
-                  std::function<void(VulkanState& vulkanState)> updateCallback,
-                  std::function<void(VulkanState& vulkanState, int32_t width, int32_t height)>
-                      resizeCallback);
-    void DrawFrame(std::function<void(VulkanState& vulkanState, VkCommandBuffer commandBuffer,
-                                      uint32_t imageIndex, uint32_t currentFrame)>
-                       renderCallback,
-                   std::function<void(VulkanState& vulkanState, int32_t width, int32_t height)>
-                       resizeCallback);
+    void MainLoop();
+    void DrawFrame();
     void WaitWhileMinimized();
 
-    void Cleanup(std::function<void(VulkanState& vulkanState)> cleanupCallback);
-
-    void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+    void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
     void SetupDebugMessenger();
 
     void CreateSurface();
@@ -127,11 +117,11 @@ private:
     bool IsDeviceSuitable(VkPhysicalDevice device);
     bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
     QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
-    std::vector<const char*> GetRequiredExtensions();
+    std::vector<const char *> GetRequiredExtensions();
     bool CheckValidationLayerSupport();
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL
     DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                   VkDebugUtilsMessageTypeFlagsEXT messageType,
-                  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
+                  const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData); // TODO: I don't prefix names with p
 };

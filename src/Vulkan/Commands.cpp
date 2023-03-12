@@ -1,6 +1,7 @@
 #include "Commands.hpp"
 
-VkCommandBuffer Commands::BeginSingleTime(VkQueue graphicsQueue, VkDevice device) {
+VkCommandBuffer Commands::BeginSingleTime(VkQueue graphicsQueue, VkDevice device)
+{
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -20,7 +21,8 @@ VkCommandBuffer Commands::BeginSingleTime(VkQueue graphicsQueue, VkDevice device
 }
 
 void Commands::EndSingleTime(VkCommandBuffer commandBuffer, VkQueue graphicsQueue,
-                             VkDevice device) {
+                             VkDevice device)
+{
     vkEndCommandBuffer(commandBuffer);
 
     VkSubmitInfo submitInfo{};
@@ -34,7 +36,8 @@ void Commands::EndSingleTime(VkCommandBuffer commandBuffer, VkQueue graphicsQueu
     vkFreeCommandBuffers(device, commandPool, 1, &commandBuffer);
 }
 
-void Commands::CreatePool(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface) {
+void Commands::CreatePool(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface)
+{
     QueueFamilyIndices queueFamilyIndices =
         QueueFamilyIndices::FindQueueFamilies(physicalDevice, surface);
 
@@ -43,12 +46,14 @@ void Commands::CreatePool(VkPhysicalDevice physicalDevice, VkDevice device, VkSu
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
 
-    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+    if (vkCreateCommandPool(device, &poolInfo, nullptr, &commandPool) != VK_SUCCESS)
+    {
         RUNTIME_ERROR("Failed to create graphics command pool!");
     }
 }
 
-void Commands::CreateBuffers(VkDevice device, size_t maxFramesInFlight) {
+void Commands::CreateBuffers(VkDevice device, size_t maxFramesInFlight)
+{
     buffers.resize(maxFramesInFlight);
 
     VkCommandBufferAllocateInfo allocInfo{};
@@ -57,31 +62,38 @@ void Commands::CreateBuffers(VkDevice device, size_t maxFramesInFlight) {
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
     allocInfo.commandBufferCount = (uint32_t)buffers.size();
 
-    if (vkAllocateCommandBuffers(device, &allocInfo, buffers.data()) != VK_SUCCESS) {
+    if (vkAllocateCommandBuffers(device, &allocInfo, buffers.data()) != VK_SUCCESS)
+    {
         RUNTIME_ERROR("Failed to allocate command buffers!");
     }
 }
 
-void Commands::ResetBuffer(const uint32_t imageIndex, const uint32_t currentFrame) {
+void Commands::ResetBuffer(const uint32_t imageIndex, const uint32_t currentFrame)
+{
     vkResetCommandBuffer(buffers[currentFrame], /*VkCommandBufferResetFlagBits*/ 0);
 }
 
-void Commands::BeginBuffer(const uint32_t currentFrame) {
+void Commands::BeginBuffer(const uint32_t currentFrame)
+{
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 
-    if (vkBeginCommandBuffer(buffers[currentFrame], &beginInfo) != VK_SUCCESS) {
+    if (vkBeginCommandBuffer(buffers[currentFrame], &beginInfo) != VK_SUCCESS)
+    {
         RUNTIME_ERROR("Failed to begin recording command buffer!");
     }
 }
 
-void Commands::EndBuffer(const uint32_t currentFrame) {
-    if (vkEndCommandBuffer(buffers[currentFrame]) != VK_SUCCESS) {
+void Commands::EndBuffer(const uint32_t currentFrame)
+{
+    if (vkEndCommandBuffer(buffers[currentFrame]) != VK_SUCCESS)
+    {
         RUNTIME_ERROR("Failed to record command buffer!");
     }
 }
 
-const VkCommandBuffer& Commands::GetBuffer(const uint32_t currentFrame) {
+const VkCommandBuffer &Commands::GetBuffer(const uint32_t currentFrame)
+{
     return buffers[currentFrame];
 }
 

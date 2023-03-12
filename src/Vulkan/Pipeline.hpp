@@ -12,12 +12,14 @@
 #include "Swapchain.hpp"
 #include "../Error.hpp"
 
-class Pipeline {
+class Pipeline
+{
 public:
     template <typename V, typename I>
-    void CreateCustom(const std::string& vertShader, const std::string& fragShader, VkDevice device,
-                      RenderPass& renderPass, bool enableTransparency,
-                      VkPipelineRasterizationStateCreateInfo rasterizer) {
+    void CreateCustom(const std::string &vertShader, const std::string &fragShader, VkDevice device,
+                      RenderPass &renderPass, bool enableTransparency,
+                      VkPipelineRasterizationStateCreateInfo rasterizer)
+    {
         this->fragShader = fragShader;
         this->vertShader = vertShader;
         this->transparencyEnabled = enableTransparency;
@@ -53,11 +55,13 @@ public:
         attributeDescriptions.reserve(vertexAttributeDescriptions.size() +
                                       instanceAttributeDescriptions.size());
 
-        for (VkVertexInputAttributeDescription desc : vertexAttributeDescriptions) {
+        for (VkVertexInputAttributeDescription desc : vertexAttributeDescriptions)
+        {
             attributeDescriptions.push_back(desc);
         }
 
-        for (VkVertexInputAttributeDescription desc : instanceAttributeDescriptions) {
+        for (VkVertexInputAttributeDescription desc : instanceAttributeDescriptions)
+        {
             attributeDescriptions.push_back(desc);
         }
 
@@ -80,11 +84,14 @@ public:
         VkPipelineMultisampleStateCreateInfo multisampling{};
         multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 
-        if (renderPass.GetMsaaEnabled()) {
+        if (renderPass.GetMsaaEnabled())
+        {
             multisampling.sampleShadingEnable = VK_TRUE;
             multisampling.minSampleShading = 0.2f;
             multisampling.rasterizationSamples = renderPass.GetMsaaSamples();
-        } else {
+        }
+        else
+        {
             multisampling.sampleShadingEnable = VK_FALSE;
             multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
         }
@@ -101,7 +108,8 @@ public:
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                                               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
-        if (enableTransparency) {
+        if (enableTransparency)
+        {
             colorBlendAttachment.blendEnable = VK_TRUE;
             colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
             colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
@@ -109,7 +117,9 @@ public:
             colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
             colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
             colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-        } else {
+        }
+        else
+        {
             colorBlendAttachment.blendEnable = VK_FALSE;
         }
 
@@ -137,7 +147,8 @@ public:
         pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 
         if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
-            VK_SUCCESS) {
+            VK_SUCCESS)
+        {
             RUNTIME_ERROR("Failed to create pipeline layout!");
         }
 
@@ -159,7 +170,8 @@ public:
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
         if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                                      &graphicsPipeline) != VK_SUCCESS) {
+                                      &graphicsPipeline) != VK_SUCCESS)
+        {
             RUNTIME_ERROR("Failed to create graphics pipeline!");
         }
 
@@ -168,8 +180,9 @@ public:
     }
 
     template <typename V, typename I>
-    void Create(const std::string& vertShader, const std::string& fragShader, VkDevice device,
-                RenderPass& renderPass, bool enableTransparency) {
+    void Create(const std::string &vertShader, const std::string &fragShader, VkDevice device,
+                RenderPass &renderPass, bool enableTransparency)
+    {
         VkPipelineRasterizationStateCreateInfo rasterizer{};
         rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
         rasterizer.depthClampEnable = VK_FALSE;
@@ -185,7 +198,8 @@ public:
     }
 
     template <typename V, typename I>
-    void Recreate(VkDevice device, const uint32_t maxFramesInFlight, RenderPass& renderPass) {
+    void Recreate(VkDevice device, const uint32_t maxFramesInFlight, RenderPass &renderPass)
+    {
         Cleanup(device);
         CreateDescriptorSetLayout(device, setupBindings);
         CreateDescriptorPool(maxFramesInFlight, device, setupPool);
@@ -195,21 +209,21 @@ public:
 
     void CreateDescriptorSetLayout(
         VkDevice device,
-        std::function<void(std::vector<VkDescriptorSetLayoutBinding>&)> setupBindings);
+        std::function<void(std::vector<VkDescriptorSetLayoutBinding> &)> setupBindings);
     void CreateDescriptorPool(
         const uint32_t maxFramesInFlight, VkDevice device,
-        std::function<void(std::vector<VkDescriptorPoolSize>& poolSizes)> setupPool);
+        std::function<void(std::vector<VkDescriptorPoolSize> &poolSizes)> setupPool);
     void CreateDescriptorSets(
         const uint32_t maxFramesInFlight, VkDevice device,
-        std::function<void(std::vector<VkWriteDescriptorSet>&, VkDescriptorSet, uint32_t)>
+        std::function<void(std::vector<VkWriteDescriptorSet> &, VkDescriptorSet, uint32_t)>
             setupDescriptor);
     void Cleanup(VkDevice device);
 
     void Bind(VkCommandBuffer commandBuffer, int32_t currentFrame);
 
 private:
-    static VkShaderModule CreateShaderModule(const std::vector<char>& code, VkDevice device);
-    static std::vector<char> ReadFile(const std::string& filename);
+    static VkShaderModule CreateShaderModule(const std::vector<char> &code, VkDevice device);
+    static std::vector<char> ReadFile(const std::string &filename);
 
     VkPipelineLayout pipelineLayout;
     VkPipeline graphicsPipeline;
@@ -218,9 +232,9 @@ private:
     VkDescriptorPool descriptorPool;
     std::vector<VkDescriptorSet> descriptorSets;
 
-    std::function<void(std::vector<VkDescriptorSetLayoutBinding>&)> setupBindings;
-    std::function<void(std::vector<VkDescriptorPoolSize>& poolSizes)> setupPool;
-    std::function<void(std::vector<VkWriteDescriptorSet>&, VkDescriptorSet, uint32_t)>
+    std::function<void(std::vector<VkDescriptorSetLayoutBinding> &)> setupBindings;
+    std::function<void(std::vector<VkDescriptorPoolSize> &poolSizes)> setupPool;
+    std::function<void(std::vector<VkWriteDescriptorSet> &, VkDescriptorSet, uint32_t)>
         setupDescriptor;
 
     std::string vertShader;

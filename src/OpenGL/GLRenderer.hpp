@@ -32,7 +32,7 @@ public:
 	GLRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight,
 			   int32_t viewWidth, int32_t viewHeight, bool enableVsync = true);
 
-	void CloseWindow() override;
+	~GLRenderer();
 	void ResizeWindow(int32_t windowWidth, int32_t windowHeight) override;
 	SDL_Window *GetWindowPtr() override;
 
@@ -41,9 +41,9 @@ public:
 	void BeginDrawing() override;
 	void EndDrawing() override;
 
-	SpriteBatch CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites);
-	void DrawSpriteBatch(SpriteBatch &spriteBatch);
-	void DestroySpriteBatch(SpriteBatch &spriteBatch);
+	SpriteBatch CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites) override;
+	void DrawSpriteBatch(SpriteBatch &spriteBatch) override;
+	void DestroySpriteBatch(SpriteBatch &spriteBatch) override;
 
 private:
 	void CheckShaderLinkError(uint32_t program);

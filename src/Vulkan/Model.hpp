@@ -2,13 +2,16 @@
 
 #include <cinttypes>
 
-template <typename V, typename I, typename D> class Model {
+template <typename V, typename I, typename D>
+class Model
+{
 public:
-    static Model<V, I, D> FromVerticesAndIndices(const std::vector<V>& vertices,
+    static Model<V, I, D> FromVerticesAndIndices(const std::vector<V> &vertices,
                                                  const std::vector<I> indices,
                                                  const size_t maxInstances, VmaAllocator allocator,
-                                                 Commands& commands, VkQueue graphicsQueue,
-                                                 VkDevice device) {
+                                                 Commands &commands, VkQueue graphicsQueue,
+                                                 VkDevice device)
+    {
         Model model = Create(maxInstances, allocator, commands, graphicsQueue, device);
         model.size = indices.size();
 
@@ -21,7 +24,8 @@ public:
     }
 
     static Model<V, I, D> Create(const size_t maxInstances, VmaAllocator allocator,
-                                 Commands& commands, VkQueue graphicsQueue, VkDevice device) {
+                                 Commands &commands, VkQueue graphicsQueue, VkDevice device)
+    {
         Model model;
 
         size_t instanceByteSize = maxInstances * sizeof(D);
@@ -34,7 +38,8 @@ public:
         return model;
     };
 
-    void Draw(VkCommandBuffer commandBuffer) {
+    void Draw(VkCommandBuffer commandBuffer)
+    {
         if (vertexBuffer.GetSize() == 0 || instanceBuffer.GetSize() == 0 ||
             indexBuffer.GetSize() == 0)
             return;
@@ -55,8 +60,9 @@ public:
                          static_cast<uint32_t>(instanceCount), 0, 0, 0);
     }
 
-    void Update(const std::vector<V>& vertices, const std::vector<I>& indices, Commands& commands,
-                VmaAllocator allocator, VkQueue graphicsQueue, VkDevice device) {
+    void Update(const std::vector<V> &vertices, const std::vector<I> &indices, Commands &commands,
+                VmaAllocator allocator, VkQueue graphicsQueue, VkDevice device)
+    {
         size = indices.size();
 
         vkDeviceWaitIdle(device);
@@ -68,14 +74,16 @@ public:
         vertexBuffer = Buffer::FromVertices(allocator, commands, graphicsQueue, device, vertices);
     }
 
-    void UpdateInstances(const std::vector<D>& instances, Commands& commands,
-                         VmaAllocator allocator, VkQueue graphicsQueue, VkDevice device) {
+    void UpdateInstances(const std::vector<D> &instances, Commands &commands,
+                         VmaAllocator allocator, VkQueue graphicsQueue, VkDevice device)
+    {
         instanceCount = instances.size();
         instanceStagingBuffer.SetData(instances.data());
         instanceStagingBuffer.CopyTo(allocator, graphicsQueue, device, commands, instanceBuffer);
     }
 
-    void Destroy(VmaAllocator allocator) {
+    void Destroy(VmaAllocator allocator)
+    {
         vertexBuffer.Destroy(allocator);
         indexBuffer.Destroy(allocator);
         instanceStagingBuffer.Destroy(allocator);

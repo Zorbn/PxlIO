@@ -10,7 +10,8 @@ Image::Image(VkImage image, VmaAllocation allocation, VkFormat format)
 Image::Image(VmaAllocator allocator, uint32_t width, uint32_t height, VkFormat format,
              VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
              uint32_t mipmapLevels, uint32_t layers, VkSampleCountFlagBits samples)
-    : format(format) {
+    : format(format)
+{
 
     layerCount = layers;
 
@@ -34,7 +35,8 @@ Image::Image(VmaAllocator allocator, uint32_t width, uint32_t height, VkFormat f
     VkImage image;
     VmaAllocation allocation;
 
-    if (vmaCreateImage(allocator, &imageInfo, &aci, &image, &allocation, nullptr) != VK_SUCCESS) {
+    if (vmaCreateImage(allocator, &imageInfo, &aci, &image, &allocation, nullptr) != VK_SUCCESS)
+    {
         RUNTIME_ERROR("Failed to allocate image memory!");
     }
 
@@ -45,7 +47,8 @@ Image::Image(VmaAllocator allocator, uint32_t width, uint32_t height, VkFormat f
     this->allocation = allocation;
 }
 
-void Image::GenerateMipmaps(Commands& commands, VkQueue graphicsQueue, VkDevice device) {
+void Image::GenerateMipmaps(Commands &commands, VkQueue graphicsQueue, VkDevice device)
+{
     VkCommandBuffer commandBuffer = commands.BeginSingleTime(graphicsQueue, device);
 
     VkImageMemoryBarrier barrier = {};
@@ -61,7 +64,8 @@ void Image::GenerateMipmaps(Commands& commands, VkQueue graphicsQueue, VkDevice 
     int32_t mipmapWidth = width;
     int32_t mipmapHeight = height;
 
-    for (uint32_t i = 1; i < mipmapLevels; i++) {
+    for (uint32_t i = 1; i < mipmapLevels; i++)
+    {
         barrier.subresourceRange.baseMipLevel = i - 1;
         barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
         barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
@@ -99,11 +103,13 @@ void Image::GenerateMipmaps(Commands& commands, VkQueue graphicsQueue, VkDevice 
                              VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1,
                              &barrier);
 
-        if (mipmapWidth > 1) {
+        if (mipmapWidth > 1)
+        {
             mipmapWidth /= 2;
         }
 
-        if (mipmapHeight > 1) {
+        if (mipmapHeight > 1)
+        {
             mipmapHeight /= 2;
         }
     }
@@ -121,13 +127,14 @@ void Image::GenerateMipmaps(Commands& commands, VkQueue graphicsQueue, VkDevice 
     commands.EndSingleTime(commandBuffer, graphicsQueue, device);
 }
 
-Buffer Image::LoadImage(const std::string& imagePath, VmaAllocator allocator, int32_t& width,
-                        int32_t& height) {
+Buffer Image::LoadImage(const std::string &imagePath, VmaAllocator allocator, int32_t &width,
+                        int32_t &height)
+{
     SDL_Surface *surface = LoadSurface(imagePath);
 
-	auto data = reinterpret_cast<uint8_t *>(surface->pixels);
-	auto textureWidth = surface->w;
-	auto textureHeight = surface->h;
+    auto data = reinterpret_cast<uint8_t *>(surface->pixels);
+    auto textureWidth = surface->w;
+    auto textureHeight = surface->h;
     size_t imageSize = textureWidth * textureHeight;
     VkDeviceSize imageByteSize = imageSize * 4;
 
@@ -139,8 +146,9 @@ Buffer Image::LoadImage(const std::string& imagePath, VmaAllocator allocator, in
     return stagingBuffer;
 }
 
-Image Image::CreateTexture(const std::string& image, VmaAllocator allocator, Commands& commands,
-                           VkQueue graphicsQueue, VkDevice device, bool enableMipmaps) {
+Image Image::CreateTexture(const std::string &image, VmaAllocator allocator, Commands &commands,
+                           VkQueue graphicsQueue, VkDevice device, bool enableMipmaps)
+{
     int32_t texWidth, texHeight;
     Buffer stagingBuffer = LoadImage(image, allocator, texWidth, texHeight);
     uint32_t mipMapLevels = enableMipmaps ? CalcMipmapLevels(texWidth, texHeight) : 1;
@@ -162,10 +170,11 @@ Image Image::CreateTexture(const std::string& image, VmaAllocator allocator, Com
     return textureImage;
 }
 
-Image Image::CreateTextureArray(const std::string& image, VmaAllocator allocator,
-                                Commands& commands, VkQueue graphicsQueue, VkDevice device,
+Image Image::CreateTextureArray(const std::string &image, VmaAllocator allocator,
+                                Commands &commands, VkQueue graphicsQueue, VkDevice device,
                                 bool enableMipmaps, uint32_t width, uint32_t height,
-                                uint32_t layers) {
+                                uint32_t layers)
+{
     int32_t texWidth, texHeight;
     Buffer stagingBuffer = LoadImage(image, allocator, texWidth, texHeight);
     uint32_t mipMapLevels = enableMipmaps ? CalcMipmapLevels(width, height) : 1;
@@ -188,12 +197,14 @@ Image Image::CreateTextureArray(const std::string& image, VmaAllocator allocator
     return textureImage;
 }
 
-VkImageView Image::CreateTextureView(VkDevice device) {
+VkImageView Image::CreateTextureView(VkDevice device)
+{
     return CreateView(VK_IMAGE_ASPECT_COLOR_BIT, device);
 }
 
 VkSampler Image::CreateTextureSampler(VkPhysicalDevice physicalDevice, VkDevice device,
-                                      VkFilter minFilter, VkFilter magFilter) {
+                                      VkFilter minFilter, VkFilter magFilter)
+{
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
 
@@ -215,14 +226,16 @@ VkSampler Image::CreateTextureSampler(VkPhysicalDevice physicalDevice, VkDevice 
 
     VkSampler textureSampler;
 
-    if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+    if (vkCreateSampler(device, &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS)
+    {
         RUNTIME_ERROR("Failed to create texture sampler!");
     }
 
     return textureSampler;
 }
 
-VkImageView Image::CreateView(VkImageAspectFlags aspectFlags, VkDevice device) {
+VkImageView Image::CreateView(VkImageAspectFlags aspectFlags, VkDevice device)
+{
     VkImageViewCreateInfo viewInfo{};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image = image;
@@ -236,15 +249,17 @@ VkImageView Image::CreateView(VkImageAspectFlags aspectFlags, VkDevice device) {
     viewInfo.subresourceRange.layerCount = layerCount;
 
     VkImageView imageView;
-    if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+    if (vkCreateImageView(device, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+    {
         RUNTIME_ERROR("Failed to create texture image view!");
     }
 
     return imageView;
 }
 
-void Image::TransitionImageLayout(Commands& commands, VkImageLayout oldLayout,
-                                  VkImageLayout newLayout, VkQueue graphicsQueue, VkDevice device) {
+void Image::TransitionImageLayout(Commands &commands, VkImageLayout oldLayout,
+                                  VkImageLayout newLayout, VkQueue graphicsQueue, VkDevice device)
+{
     VkCommandBuffer commandBuffer = commands.BeginSingleTime(graphicsQueue, device);
 
     VkImageMemoryBarrier barrier{};
@@ -264,27 +279,34 @@ void Image::TransitionImageLayout(Commands& commands, VkImageLayout oldLayout,
     VkPipelineStageFlags destinationStage;
 
     if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-        newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+        newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    {
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
         sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-    } else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-               newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    }
+    else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    {
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-    } else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-               newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    }
+    else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
+             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    {
         barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
         sourceStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
         destinationStage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
-    } else {
+    }
+    else
+    {
         RUNTIME_ERROR("Unsupported layout transition!");
     }
 
@@ -294,13 +316,16 @@ void Image::TransitionImageLayout(Commands& commands, VkImageLayout oldLayout,
     commands.EndSingleTime(commandBuffer, graphicsQueue, device);
 }
 
-void Image::CopyFromBuffer(Buffer& src, Commands& commands, VkQueue graphicsQueue, VkDevice device,
-                           uint32_t fullWidth, uint32_t fullHeight) {
-    if (fullWidth == 0) {
+void Image::CopyFromBuffer(Buffer &src, Commands &commands, VkQueue graphicsQueue, VkDevice device,
+                           uint32_t fullWidth, uint32_t fullHeight)
+{
+    if (fullWidth == 0)
+    {
         fullWidth = width;
     }
 
-    if (fullHeight == 0) {
+    if (fullHeight == 0)
+    {
         fullHeight = height;
     }
 
@@ -309,7 +334,8 @@ void Image::CopyFromBuffer(Buffer& src, Commands& commands, VkQueue graphicsQueu
     std::vector<VkBufferImageCopy> regions;
     uint32_t texPerRow = fullWidth / width;
 
-    for (uint32_t layer = 0; layer < layerCount; layer++) {
+    for (uint32_t layer = 0; layer < layerCount; layer++)
+    {
         uint32_t xLayer = layer % texPerRow;
         uint32_t yLayer = layer / texPerRow;
 
@@ -333,7 +359,8 @@ void Image::CopyFromBuffer(Buffer& src, Commands& commands, VkQueue graphicsQueu
     commands.EndSingleTime(commandBuffer, graphicsQueue, device);
 }
 
-uint32_t Image::CalcMipmapLevels(int32_t texWidth, int32_t texHeight) {
+uint32_t Image::CalcMipmapLevels(int32_t texWidth, int32_t texHeight)
+{
     return static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 }
 

@@ -20,7 +20,6 @@ const float zFar = 1000.0f;
 class Renderer
 {
 public:
-	virtual void CloseWindow() = 0;
 	virtual void ResizeWindow(int32_t windowWidth, int32_t windowHeight) = 0;
 	virtual SDL_Window *GetWindowPtr() = 0;
 
@@ -28,4 +27,8 @@ public:
 	virtual void SetScreenBackgroundColor(float r, float g, float b) = 0;
 	virtual void BeginDrawing() = 0;
 	virtual void EndDrawing() = 0;
+
+	virtual SpriteBatch CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites) = 0;
+	virtual void DrawSpriteBatch(SpriteBatch &spriteBatch) = 0;
+	virtual void DestroySpriteBatch(SpriteBatch &spriteBatch) = 0;
 };

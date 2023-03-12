@@ -252,7 +252,7 @@ GLRenderer::GLRenderer(const std::string &windowName, int32_t windowWidth, int32
 	ResizeWindow(windowWidth, windowHeight);
 }
 
-void GLRenderer::CloseWindow()
+GLRenderer::~GLRenderer()
 {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);

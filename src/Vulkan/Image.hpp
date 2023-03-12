@@ -9,12 +9,13 @@
 #include "../ImageLoader.hpp"
 #include "../Error.hpp"
 
-class Image {
+class Image
+{
 public:
-    static Image CreateTexture(const std::string& image, VmaAllocator allocator, Commands& commands,
+    static Image CreateTexture(const std::string &image, VmaAllocator allocator, Commands &commands,
                                VkQueue graphicsQueue, VkDevice device, bool enableMipmaps);
-    static Image CreateTextureArray(const std::string& image, VmaAllocator allocator,
-                                    Commands& commands, VkQueue graphicsQueue, VkDevice device,
+    static Image CreateTextureArray(const std::string &image, VmaAllocator allocator,
+                                    Commands &commands, VkQueue graphicsQueue, VkDevice device,
                                     bool enableMipmaps, uint32_t width, uint32_t height,
                                     uint32_t layers);
 
@@ -30,11 +31,11 @@ public:
                                    VkFilter minFilter = VK_FILTER_LINEAR,
                                    VkFilter magFilter = VK_FILTER_LINEAR);
     VkImageView CreateView(VkImageAspectFlags aspectFlags, VkDevice device);
-    void TransitionImageLayout(Commands& commands, VkImageLayout oldLayout, VkImageLayout newLayout,
+    void TransitionImageLayout(Commands &commands, VkImageLayout oldLayout, VkImageLayout newLayout,
                                VkQueue graphicsQueue, VkDevice device);
-    void CopyFromBuffer(Buffer& src, Commands& commands, VkQueue graphicsQueue, VkDevice device,
+    void CopyFromBuffer(Buffer &src, Commands &commands, VkQueue graphicsQueue, VkDevice device,
                         uint32_t fullWidth = 0, uint32_t fullHeight = 0);
-    void GenerateMipmaps(Commands& commands, VkQueue graphicsQueue, VkDevice device);
+    void GenerateMipmaps(Commands &commands, VkQueue graphicsQueue, VkDevice device);
     void Destroy(VmaAllocator allocator);
     uint32_t GetWidth() const;
     uint32_t GetHeight() const;
@@ -48,7 +49,7 @@ private:
     uint32_t height = 0;
     uint32_t mipmapLevels = 1;
 
-    static Buffer LoadImage(const std::string& image, VmaAllocator allocator, int32_t& width,
-                            int32_t& height);
+    static Buffer LoadImage(const std::string &image, VmaAllocator allocator, int32_t &width,
+                            int32_t &height);
     static uint32_t CalcMipmapLevels(int32_t texWidth, int32_t texHeight);
 };

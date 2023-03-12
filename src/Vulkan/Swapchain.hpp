@@ -12,13 +12,15 @@
 #include "QueueFamilyIndices.hpp"
 #include "../Error.hpp"
 
-struct SwapchainSupportDetails {
+struct SwapchainSupportDetails
+{
     VkSurfaceCapabilitiesKHR capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR> presentModes;
 };
 
-class Swapchain {
+class Swapchain
+{
 public:
     void Create(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
                 int32_t windowWidth, int32_t windowHeight,
@@ -28,16 +30,16 @@ public:
                   VkSurfaceKHR surface, int32_t windowWidth, int32_t windowHeight);
 
     SwapchainSupportDetails QuerySupport(VkPhysicalDevice device, VkSurfaceKHR surface);
-    VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes,
+    VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats);
+    VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes,
                                        VkPresentModeKHR preferredPresentMode);
-    VkExtent2D ChooseExtent(const VkSurfaceCapabilitiesKHR& capabilities, int32_t windowWidth,
+    VkExtent2D ChooseExtent(const VkSurfaceCapabilitiesKHR &capabilities, int32_t windowWidth,
                             int32_t windowHeight);
-    VkResult GetNextImage(VkDevice device, VkSemaphore semaphore, uint32_t& imageIndex);
+    VkResult GetNextImage(VkDevice device, VkSemaphore semaphore, uint32_t &imageIndex);
 
-    const VkSwapchainKHR& GetSwapchain();
-    const VkExtent2D& GetExtent();
-    const VkFormat& GetImageFormat();
+    const VkSwapchainKHR &GetSwapchain();
+    const VkExtent2D &GetExtent();
+    const VkFormat &GetImageFormat();
 
 private:
     VkSwapchainKHR swapchain;
