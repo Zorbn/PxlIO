@@ -22,17 +22,13 @@
             const canvas = document.getElementById('canvas');
 
 			var Module = {
-				print: (function() {
-					return function(text) {
-						console.log(text);
-					};
-				})(),
-				printErr: function(text) {
-						console.log(text);
+				print: (text) => {
+					console.log(text);
 				},
-				canvas: (function() {
-					return canvas;
-				})()
+				printErr: (text) => {
+					console.error(text);
+				},
+				canvas,
 			};
 		</script>
 		<script src="PxlRnd.js"></script>
