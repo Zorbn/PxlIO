@@ -40,12 +40,14 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
                                    const VkAllocationCallbacks *pAllocator);
 
-struct VertexData {
+struct VertexData
+{
     glm::vec3 pos;
     glm::vec2 texCoord;
     glm::vec4 color;
 
-    static VkVertexInputBindingDescription getBindingDescription() {
+    static VkVertexInputBindingDescription getBindingDescription()
+    {
         VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 0;
         bindingDescription.stride = sizeof(VertexData);
@@ -54,7 +56,8 @@ struct VertexData {
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
+    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+    {
         std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
         attributeDescriptions[0].binding = 0;
@@ -76,8 +79,10 @@ struct VertexData {
     }
 };
 
-struct InstanceData {
-    static VkVertexInputBindingDescription getBindingDescription() {
+struct InstanceData
+{
+    static VkVertexInputBindingDescription getBindingDescription()
+    {
         VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 1;
         bindingDescription.stride = sizeof(InstanceData);
@@ -86,25 +91,34 @@ struct InstanceData {
         return bindingDescription;
     }
 
-    static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions() {
+    static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
+    {
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 
         return attributeDescriptions;
     }
 };
 
-struct UniformBufferData {
+struct UniformBufferData
+{
     alignas(16) glm::mat4 proj;
 };
 
-// const std::vector<VertexData> spriteVertices = {
-//     {{0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
-//     {{1.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}},
-//     {{1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 0.0f}},
-//     {{0.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 0.0f}},
-// };
+struct ScreenUniformBufferData
+{
+    alignas(16) glm::mat4 proj;
+    alignas(8) glm::vec2 viewSize;
+    alignas(8) glm::vec2 offset;
+};
 
-// const std::vector<uint32_t> spriteIndices = {0, 2, 1, 0, 3, 2};
+const std::vector<VertexData> screenVertices = {
+    {{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+    {{1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+    {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+    {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+};
+
+const std::vector<uint32_t> screenIndices = {0, 1, 2, 0, 2, 3};
 
 struct VulkanState
 {
@@ -149,6 +163,8 @@ private:
     SDL_Window *window;
     int32_t windowWidth;
     int32_t windowHeight;
+    int32_t viewWidth;
+    int32_t viewHeight;
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
@@ -164,17 +180,28 @@ private:
 
     bool framebufferResized = false;
 
+    Image screenColorImage;
+    VkImageView screenColorImageView;
+    VkSampler screenColorSampler;
+
+    Image screenDepthImage;
+    VkImageView screenDepthImageView;
+
     RenderPass renderPass;
+    RenderPass screenRenderPass;
     std::vector<VkClearValue> clearValues;
 
+    Pipeline screenPipeline;
+
     UniformBuffer<UniformBufferData> ubo;
+    UniformBuffer<ScreenUniformBufferData> screenUbo;
+    Model<VertexData, uint32_t, InstanceData> screenModel;
     Model<VertexData, uint32_t, InstanceData> spriteModel;
-	std::unordered_map<uint32_t, VKSpriteBatchData> spriteBatchDatas;
+    std::unordered_map<uint32_t, VKSpriteBatchData> spriteBatchDatas;
 
-    void InitWindow(const std::string &windowTitle, const uint32_t windowWidth,
-                    const uint32_t windowHeight);
+    void InitWindow(const std::string &windowTitle);
 
-    void InitVulkan(const uint32_t maxFramesInFlight, int32_t viewWidth, int32_t viewHeight);
+    void InitVulkan(const uint32_t maxFramesInFlight);
     void CreateInstance();
     void CreateAllocator();
     void CreateLogicalDevice();
@@ -208,5 +235,8 @@ private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL
     DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                   VkDebugUtilsMessageTypeFlagsEXT messageType,
-                  const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData); // TODO: I don't prefix names with p
+                  const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData);
+
+    static glm::mat4 VkOrtho(float left, float right, float bottom, float top,
+                      float near, float far);
 };

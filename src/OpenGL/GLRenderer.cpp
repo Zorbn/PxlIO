@@ -271,6 +271,7 @@ void GLRenderer::ResizeWindow(int32_t windowWidth, int32_t windowHeight)
 											 0.0f, static_cast<float>(windowHeight), 0.0f, 1.0f);
 	glUniformMatrix4fv(screenProjLocation, 1, GL_FALSE, glm::value_ptr(screenProj));
 
+    // TODO: This is used in GLRenderer and VKRenderer, factor it out.
 	float widthRatio = windowWidth / static_cast<float>(viewWidth);
 	float heightRatio = windowHeight / static_cast<float>(viewHeight);
 	float scale = heightRatio;

@@ -17,6 +17,7 @@
 const float zNear = 0.0f;
 const float zFar = 1000.0f;
 
+// TODO: Add a way to create a generic renderer and have the library choose GL or Vulkan for you.
 class Renderer
 {
 public:

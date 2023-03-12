@@ -8,7 +8,7 @@
 
 int main(int argc, char **argv)
 {
-    VKRenderer rend("PxlRnd", 640, 480, 640, 480);
+    VKRenderer rend("PxlRnd", 640, 480, 320, 240);
 
     SDL_Window *window = rend.GetWindowPtr();
 

@@ -40,13 +40,13 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
     }
 }
 
-// TODO: Support view width/view height
 // TODO: Support vsync toggle
 VKRenderer::VKRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight,
                        int32_t viewWidth, int32_t viewHeight, bool enableVsync)
+    : windowWidth(windowWidth), windowHeight(windowHeight), viewWidth(viewWidth), viewHeight(viewHeight)
 {
-    InitWindow(windowName, windowWidth, windowHeight);
-    InitVulkan(maxFramesInFlight, viewWidth, viewHeight);
+    InitWindow(windowName);
+    InitVulkan(maxFramesInFlight);
     ResizeWindow(windowWidth, windowHeight);
 }
 
@@ -77,6 +77,38 @@ void VKRenderer::HandleResize()
 {
     renderPass.Recreate(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator,
                         vulkanState.swapchain);
+    screenRenderPass.Recreate(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator,
+                              vulkanState.swapchain);
+    screenPipeline.Recreate<VertexData, InstanceData>(
+        vulkanState.device, vulkanState.maxFramesInFlight, screenRenderPass);
+
+    // TODO: This is used in GLRenderer and VKRenderer, factor it out.
+    float widthRatio = windowWidth / static_cast<float>(viewWidth);
+	float heightRatio = windowHeight / static_cast<float>(viewHeight);
+	float scale = heightRatio;
+
+	if (widthRatio < heightRatio)
+	{
+		scale = widthRatio;
+	}
+
+	if (scale > 1.0f)
+	{
+		scale = glm::floor(scale);
+	}
+
+	float scaledViewWidth = viewWidth * scale;
+	float scaledViewHeight = viewHeight * scale;
+	float offsetX = (windowWidth - scaledViewWidth) * 0.5f;
+	float offsetY = (windowHeight - scaledViewHeight) * 0.5f;
+
+    ScreenUniformBufferData screenUboData{};
+    screenUboData.proj = VkOrtho(0.0f, static_cast<float>(windowWidth), 0.0f,
+                                 static_cast<float>(windowHeight), zNear, zFar);
+    screenUboData.viewSize = glm::vec2(scaledViewWidth, scaledViewHeight);
+    screenUboData.offset = glm::vec2(offsetX, offsetY);
+
+    screenUbo.Update(screenUboData);
 }
 
 void VKRenderer::BeginDrawing()
@@ -187,22 +219,22 @@ SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
     pipeline.CreateDescriptorSetLayout(
         vulkanState.device, [&](std::vector<VkDescriptorSetLayoutBinding> &bindings)
         {
-                VkDescriptorSetLayoutBinding uboLayoutBinding{};
-                uboLayoutBinding.binding = 0;
-                uboLayoutBinding.descriptorCount = 1;
-                uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                uboLayoutBinding.pImmutableSamplers = nullptr;
-                uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+            VkDescriptorSetLayoutBinding uboLayoutBinding{};
+            uboLayoutBinding.binding = 0;
+            uboLayoutBinding.descriptorCount = 1;
+            uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            uboLayoutBinding.pImmutableSamplers = nullptr;
+            uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-                VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-                samplerLayoutBinding.binding = 1;
-                samplerLayoutBinding.descriptorCount = 1;
-                samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                samplerLayoutBinding.pImmutableSamplers = nullptr;
-                samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+            VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+            samplerLayoutBinding.binding = 1;
+            samplerLayoutBinding.descriptorCount = 1;
+            samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            samplerLayoutBinding.pImmutableSamplers = nullptr;
+            samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-                bindings.push_back(uboLayoutBinding);
-                bindings.push_back(samplerLayoutBinding); });
+            bindings.push_back(uboLayoutBinding);
+            bindings.push_back(samplerLayoutBinding); });
     pipeline.CreateDescriptorPool(
         vulkanState.maxFramesInFlight, vulkanState.device,
         [&](std::vector<VkDescriptorPoolSize> poolSizes)
@@ -294,6 +326,13 @@ void VKRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 
     renderPass.End(currentBuffer);
 
+    screenRenderPass.Begin(currentImageIndex, currentBuffer, extent, clearValues);
+    screenPipeline.Bind(currentBuffer, currentFrame);
+
+    screenModel.Draw(currentBuffer);
+
+    screenRenderPass.End(currentBuffer);
+
     vulkanState.commands.EndBuffer(currentFrame);
 }
 
@@ -302,8 +341,7 @@ void VKRenderer::DestroySpriteBatch(SpriteBatch &spriteBatch)
     // TODO
 }
 
-void VKRenderer::InitWindow(const std::string &windowName, const uint32_t windowWidth,
-                            const uint32_t windowHeight)
+void VKRenderer::InitWindow(const std::string &windowName)
 {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
     {
@@ -320,36 +358,7 @@ void VKRenderer::InitWindow(const std::string &windowName, const uint32_t window
                               SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 }
 
-// An alternative to glm::ortho that is designed to work with Vulkan.
-// The normal glm projection matrix functions have unexpected behavior.
-glm::mat4 VkOrtho(float left, float right, float bottom, float top,
-    float near, float far)
-{
-    glm::mat4 ortho;
-    ortho[0][0] = 2.0f / (right - left);
-    ortho[0][1] = 0.0f;
-    ortho[0][2] = 0.0f;
-    ortho[0][3] = 0.0f;
-
-    ortho[1][0] = 0.0f;
-    ortho[1][1] = 2.0f / (bottom - top);
-    ortho[1][2] = 0.0f;
-    ortho[1][3] = 0.0f;
-
-    ortho[2][0] = 0.0f;
-    ortho[2][1] = 0.0f;
-    ortho[2][2] = -1.0f / (near - far);
-    ortho[2][3] = 0.0f;
-
-    ortho[3][0] = -(right + left) / (right - left);
-    ortho[3][1] = -(bottom + top) / (bottom - top);
-    ortho[3][2] = near / (near - far);
-    ortho[3][3] = 1.0f;
-
-    return ortho;
-}
-
-void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight, int32_t viewWidth, int32_t viewHeight)
+void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
 {
 
     CreateInstance();
@@ -373,23 +382,239 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight, int32_t viewWidth,
                                     vulkanState.surface);
     vulkanState.commands.CreateBuffers(vulkanState.device, vulkanState.maxFramesInFlight);
 
-    renderPass.Create(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator, vulkanState.swapchain, true, true);
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_NEAREST;
+    samplerInfo.minFilter = VK_FILTER_NEAREST;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+    samplerInfo.anisotropyEnable = VK_FALSE;
+    samplerInfo.maxAnisotropy = 1.0f;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_WHITE;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.maxLod = 1.0f;
+
+    if (vkCreateSampler(vulkanState.device, &samplerInfo, nullptr, &screenColorSampler) !=
+        VK_SUCCESS)
+    {
+        RUNTIME_ERROR("Failed to create color sampler!");
+    }
+
+    ubo.Create(vulkanState.maxFramesInFlight, vulkanState.allocator);
+
+    UniformBufferData uboData{};
+    uboData.proj = VkOrtho(0.0f, static_cast<float>(viewWidth), 0.0f,
+                           static_cast<float>(viewHeight), zNear, zFar);
+
+    ubo.Update(uboData);
+
+    screenUbo.Create(vulkanState.maxFramesInFlight, vulkanState.allocator);
+
+    renderPass.CreateCustom(
+        vulkanState.device, vulkanState.swapchain,
+        [&]
+        {
+            VkAttachmentDescription colorAttachment{};
+            colorAttachment.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+            VkFormat depthFormat = renderPass.FindDepthFormat(vulkanState.physicalDevice);
+            VkAttachmentDescription depthAttachment{};
+            depthAttachment.format = depthFormat;
+            depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+            VkAttachmentReference colorAttachmentRef{};
+            colorAttachmentRef.attachment = 0;
+            colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+            VkAttachmentReference depthAttachmentRef{};
+            depthAttachmentRef.attachment = 1;
+            depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+            VkSubpassDescription subpass{};
+            subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+            subpass.colorAttachmentCount = 1;
+            subpass.pColorAttachments = &colorAttachmentRef;
+            subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+            std::array<VkSubpassDependency, 2> dependencies;
+
+            dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+            dependencies[0].dstSubpass = 0;
+            dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+            dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+            dependencies[0].dstAccessMask =
+                VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+            dependencies[1].srcSubpass = 0;
+            dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+            dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+            dependencies[1].srcAccessMask =
+                VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+            dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+            std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
+
+            VkRenderPassCreateInfo renderPassInfo{};
+            renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+            renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+            renderPassInfo.pAttachments = attachments.data();
+            renderPassInfo.subpassCount = 1;
+            renderPassInfo.pSubpasses = &subpass;
+            renderPassInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+            renderPassInfo.pDependencies = dependencies.data();
+
+            VkRenderPass renderPass;
+
+            if (vkCreateRenderPass(vulkanState.device, &renderPassInfo, nullptr, &renderPass) !=
+                VK_SUCCESS)
+            {
+                RUNTIME_ERROR("Failed to create render pass!");
+            }
+
+            return renderPass;
+        },
+        [&](const VkExtent2D &extent)
+        {
+            screenColorImage = Image(vulkanState.allocator, extent.width, extent.height,
+                                     VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
+                                     VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            screenColorImageView =
+                screenColorImage.CreateView(VK_IMAGE_ASPECT_COLOR_BIT, vulkanState.device);
+
+            VkFormat depthFormat = renderPass.FindDepthFormat(vulkanState.physicalDevice);
+            screenDepthImage = Image(vulkanState.allocator, extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+                                     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            screenDepthImageView = screenDepthImage.CreateView(VK_IMAGE_ASPECT_DEPTH_BIT, vulkanState.device);
+        },
+        [=]
+        {
+            vkDestroyImageView(vulkanState.device, screenColorImageView, nullptr);
+            screenColorImage.Destroy(vulkanState.allocator);
+
+            vkDestroyImageView(vulkanState.device, screenDepthImageView, nullptr);
+            screenDepthImage.Destroy(vulkanState.allocator);
+        },
+        [&](std::vector<VkImageView> &attachments, VkImageView imageView)
+        {
+            attachments.push_back(screenColorImageView);
+            attachments.push_back(screenDepthImageView);
+        });
+
+    screenRenderPass.Create(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator, vulkanState.swapchain, true, false);
+
+    screenPipeline.CreateDescriptorSetLayout(
+        vulkanState.device, [&](std::vector<VkDescriptorSetLayoutBinding> &bindings)
+        {
+                VkDescriptorSetLayoutBinding uboLayoutBinding{};
+                uboLayoutBinding.binding = 0;
+                uboLayoutBinding.descriptorCount = 1;
+                uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                uboLayoutBinding.pImmutableSamplers = nullptr;
+                uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+                VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+                samplerLayoutBinding.binding = 1;
+                samplerLayoutBinding.descriptorCount = 1;
+                samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                samplerLayoutBinding.pImmutableSamplers = nullptr;
+                samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+                VkDescriptorSetLayoutBinding depthSamplerLayoutBinding{};
+                depthSamplerLayoutBinding.binding = 2;
+                depthSamplerLayoutBinding.descriptorCount = 1;
+                depthSamplerLayoutBinding.descriptorType =
+                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                depthSamplerLayoutBinding.pImmutableSamplers = nullptr;
+                depthSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+                bindings.push_back(uboLayoutBinding);
+                bindings.push_back(samplerLayoutBinding);
+                bindings.push_back(depthSamplerLayoutBinding); });
+    screenPipeline.CreateDescriptorPool(
+        vulkanState.maxFramesInFlight, vulkanState.device,
+        [&](std::vector<VkDescriptorPoolSize> poolSizes)
+        {
+            poolSizes.resize(3);
+            poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            poolSizes[0].descriptorCount = static_cast<uint32_t>(vulkanState.maxFramesInFlight);
+            poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            poolSizes[1].descriptorCount = static_cast<uint32_t>(vulkanState.maxFramesInFlight);
+            poolSizes[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            poolSizes[2].descriptorCount = static_cast<uint32_t>(vulkanState.maxFramesInFlight);
+        });
+    screenPipeline.CreateDescriptorSets(
+        vulkanState.maxFramesInFlight, vulkanState.device,
+        [&](std::vector<VkWriteDescriptorSet> &descriptorWrites, VkDescriptorSet descriptorSet,
+            uint32_t i)
+        {
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = screenUbo.GetBuffer(i);
+            bufferInfo.offset = 0;
+            bufferInfo.range = screenUbo.GetDataSize();
+
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = screenColorImageView;
+            imageInfo.sampler = screenColorSampler;
+
+            descriptorWrites.resize(2);
+
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = descriptorSet;
+            descriptorWrites[0].dstBinding = 0;
+            descriptorWrites[0].dstArrayElement = 0;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[0].descriptorCount = 1;
+            descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].dstSet = descriptorSet;
+            descriptorWrites[1].dstBinding = 1;
+            descriptorWrites[1].dstArrayElement = 0;
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[1].descriptorCount = 1;
+            descriptorWrites[1].pImageInfo = &imageInfo;
+
+            vkUpdateDescriptorSets(vulkanState.device,
+                                   static_cast<uint32_t>(descriptorWrites.size()),
+                                   descriptorWrites.data(), 0, nullptr);
+        });
+    screenPipeline.Create<VertexData, InstanceData>("res/VKScreen.vert.spv",
+                                                    "res/VKScreen.frag.spv",
+                                                    vulkanState.device, screenRenderPass, false);
 
     clearValues.resize(2);
     clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
     clearValues[1].depthStencil = {1.0f, 0};
 
-    ubo.Create(vulkanState.maxFramesInFlight, vulkanState.allocator);
-
-    UniformBufferData uboData{};
-    uboData.proj = VkOrtho(0.0f, 640.0f, 0.0f,
-                                480.0f, zNear, zFar);
-
-    ubo.Update(uboData);
+    screenModel = Model<VertexData, uint32_t, InstanceData>::FromVerticesAndIndices(screenVertices, screenIndices, 1, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device);
+    screenModel.UpdateInstances({InstanceData{}}, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
 
     spriteModel = Model<VertexData, uint32_t, InstanceData>::Create(1, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device);
-    std::vector<InstanceData> instances = {InstanceData{}};
-    spriteModel.UpdateInstances(instances, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
+    spriteModel.UpdateInstances({InstanceData{}}, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
 
     CreateSyncObjects();
 }
@@ -768,9 +993,38 @@ bool VKRenderer::CheckValidationLayerSupport()
 VKAPI_ATTR VkBool32 VKAPI_CALL VKRenderer::DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData, void *pUserData)
+    const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData)
 {
-    std::cerr << "Validation layer: " << pCallbackData->pMessage << std::endl;
+    std::cerr << "Validation layer: " << callbackData->pMessage << std::endl;
 
     return VK_FALSE;
+}
+
+// An alternative to glm::ortho that is designed to work with Vulkan.
+// The normal glm projection matrix functions have unexpected behavior.
+glm::mat4 VKRenderer::VkOrtho(float left, float right, float bottom, float top,
+                  float near, float far)
+{
+    glm::mat4 ortho;
+    ortho[0][0] = 2.0f / (right - left);
+    ortho[0][1] = 0.0f;
+    ortho[0][2] = 0.0f;
+    ortho[0][3] = 0.0f;
+
+    ortho[1][0] = 0.0f;
+    ortho[1][1] = 2.0f / (bottom - top);
+    ortho[1][2] = 0.0f;
+    ortho[1][3] = 0.0f;
+
+    ortho[2][0] = 0.0f;
+    ortho[2][1] = 0.0f;
+    ortho[2][2] = -1.0f / (near - far);
+    ortho[2][3] = 0.0f;
+
+    ortho[3][0] = -(right + left) / (right - left);
+    ortho[3][1] = -(bottom + top) / (bottom - top);
+    ortho[3][2] = near / (near - far);
+    ortho[3][3] = 1.0f;
+
+    return ortho;
 }
