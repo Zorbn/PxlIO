@@ -32,7 +32,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
     }
 }
 
-void VKRenderer::run(
+void VKRenderer::Run(
     const std::string& windowTitle, const uint32_t windowWidth, const uint32_t windowHeight,
     const uint32_t maxFramesInFlight,
     std::function<void(VulkanState& vulkanState, SDL_Window* window, int32_t width, int32_t height)>
@@ -44,20 +44,20 @@ void VKRenderer::run(
     std::function<void(VulkanState& vulkanState, int32_t width, int32_t height)> resizeCallback,
     std::function<void(VulkanState& vulkanState)> cleanupCallback) {
 
-    initWindow(windowTitle, windowWidth, windowHeight);
-    initVulkan(maxFramesInFlight, initCallback);
-    mainLoop(renderCallback, updateCallback, resizeCallback);
-    cleanup(cleanupCallback);
+    InitWindow(windowTitle, windowWidth, windowHeight);
+    InitVulkan(maxFramesInFlight, initCallback);
+    MainLoop(renderCallback, updateCallback, resizeCallback);
+    Cleanup(cleanupCallback);
 }
 
-void VKRenderer::initWindow(const std::string& windowTitle, const uint32_t windowWidth,
+void VKRenderer::InitWindow(const std::string& windowTitle, const uint32_t windowWidth,
                           const uint32_t windowHeight) {
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
-        throw std::runtime_error("Unable to initialize SDL!");
+        RUNTIME_ERROR("Unable to initialize SDL!");
     }
 
     if (SDL_Vulkan_LoadLibrary(NULL)) {
-        throw std::runtime_error("Unable to initialize Vulkan!");
+        RUNTIME_ERROR("Unable to initialize Vulkan!");
     }
 
     window = SDL_CreateWindow(windowTitle.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -65,17 +65,17 @@ void VKRenderer::initWindow(const std::string& windowTitle, const uint32_t windo
                               SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 }
 
-void VKRenderer::initVulkan(
+void VKRenderer::InitVulkan(
     const uint32_t maxFramesInFlight,
     std::function<void(VulkanState& vulkanState, SDL_Window* window, int32_t width, int32_t height)>
         initCallback) {
 
-    createInstance();
-    setupDebugMessenger();
-    createSurface();
-    pickPhysicalDevice();
+    CreateInstance();
+    SetupDebugMessenger();
+    CreateSurface();
+    PickPhysicalDevice();
     createLogicalDevice();
-    createAllocator();
+    CreateAllocator();
 
     int32_t width;
     int32_t height;
@@ -85,10 +85,10 @@ void VKRenderer::initVulkan(
 
     initCallback(vulkanState, window, width, height);
 
-    createSyncObjects();
+    CreateSyncObjects();
 }
 
-void VKRenderer::createAllocator() {
+void VKRenderer::CreateAllocator() {
     VmaVulkanFunctions vkFuncs = {};
 
     vkFuncs.vkGetInstanceProcAddr = &vkGetInstanceProcAddr;
@@ -104,7 +104,7 @@ void VKRenderer::createAllocator() {
     vmaCreateAllocator(&aci, &vulkanState.allocator);
 }
 
-void VKRenderer::mainLoop(
+void VKRenderer::MainLoop(
     std::function<void(VulkanState& vulkanState, VkCommandBuffer commandBuffer, uint32_t imageIndex,
                        uint32_t currentFrame)>
         renderCallback,
@@ -129,13 +129,13 @@ void VKRenderer::mainLoop(
         }
 
         updateCallback(vulkanState);
-        drawFrame(renderCallback, resizeCallback);
+        DrawFrame(renderCallback, resizeCallback);
     }
 
     vkDeviceWaitIdle(vulkanState.device);
 }
 
-void VKRenderer::waitWhileMinimized() {
+void VKRenderer::WaitWhileMinimized() {
     int32_t width = 0;
     int32_t height = 0;
     SDL_Vulkan_GetDrawableSize(window, &width, &height);
@@ -145,8 +145,8 @@ void VKRenderer::waitWhileMinimized() {
     }
 }
 
-void VKRenderer::cleanup(std::function<void(VulkanState& vulkanState)> cleanupCallback) {
-    vulkanState.swapchain.cleanup(vulkanState.allocator, vulkanState.device);
+void VKRenderer::Cleanup(std::function<void(VulkanState& vulkanState)> cleanupCallback) {
+    vulkanState.swapchain.Cleanup(vulkanState.allocator, vulkanState.device);
 
     cleanupCallback(vulkanState);
 
@@ -158,7 +158,7 @@ void VKRenderer::cleanup(std::function<void(VulkanState& vulkanState)> cleanupCa
         vkDestroyFence(vulkanState.device, inFlightFences[i], nullptr);
     }
 
-    vulkanState.commands.destroy(vulkanState.device);
+    vulkanState.commands.Destroy(vulkanState.device);
 
     vkDestroyDevice(vulkanState.device, nullptr);
 
@@ -174,9 +174,9 @@ void VKRenderer::cleanup(std::function<void(VulkanState& vulkanState)> cleanupCa
     SDL_Quit();
 }
 
-void VKRenderer::createInstance() {
-    if (enableValidationLayers && !checkValidationLayerSupport()) {
-        throw std::runtime_error("Validation layers requested, but not available!");
+void VKRenderer::CreateInstance() {
+    if (enableValidationLayers && !CheckValidationLayerSupport()) {
+        RUNTIME_ERROR("Validation layers requested, but not available!");
     }
 
     VkApplicationInfo appInfo{};
@@ -191,7 +191,7 @@ void VKRenderer::createInstance() {
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
 
-    auto extensions = getRequiredExtensions();
+    auto extensions = GetRequiredExtensions();
     createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     createInfo.ppEnabledExtensionNames = extensions.data();
 
@@ -200,7 +200,7 @@ void VKRenderer::createInstance() {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
 
-        populateDebugMessengerCreateInfo(debugCreateInfo);
+        PopulateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugCreateInfo;
     } else {
         createInfo.enabledLayerCount = 0;
@@ -209,11 +209,11 @@ void VKRenderer::createInstance() {
     }
 
     if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create instance!");
+        RUNTIME_ERROR("Failed to create instance!");
     }
 }
 
-void VKRenderer::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
+void VKRenderer::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
     createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
@@ -222,54 +222,54 @@ void VKRenderer::populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInf
     createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
                              VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
                              VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    createInfo.pfnUserCallback = debugCallback;
+    createInfo.pfnUserCallback = DebugCallback;
 }
 
-void VKRenderer::setupDebugMessenger() {
+void VKRenderer::SetupDebugMessenger() {
     if (!enableValidationLayers)
         return;
 
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
-    populateDebugMessengerCreateInfo(createInfo);
+    PopulateDebugMessengerCreateInfo(createInfo);
 
     if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) !=
         VK_SUCCESS) {
-        throw std::runtime_error("Failed to set up debug messenger!");
+        RUNTIME_ERROR("Failed to set up debug messenger!");
     }
 }
 
-void VKRenderer::createSurface() {
+void VKRenderer::CreateSurface() {
     if (!SDL_Vulkan_CreateSurface(window, instance, &vulkanState.surface)) {
-        throw std::runtime_error("Failed to create window surface!");
+        RUNTIME_ERROR("Failed to create window surface!");
     }
 }
 
-void VKRenderer::pickPhysicalDevice() {
+void VKRenderer::PickPhysicalDevice() {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
 
     if (deviceCount == 0) {
-        throw std::runtime_error("Failed to find GPUs with Vulkan support!");
+        RUNTIME_ERROR("Failed to find GPUs with Vulkan support!");
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
     for (const auto& device : devices) {
-        if (isDeviceSuitable(device)) {
+        if (IsDeviceSuitable(device)) {
             vulkanState.physicalDevice = device;
             break;
         }
     }
 
     if (vulkanState.physicalDevice == VK_NULL_HANDLE) {
-        throw std::runtime_error("Failed to find a suitable GPU!");
+        RUNTIME_ERROR("Failed to find a suitable GPU!");
     }
 }
 
 void VKRenderer::createLogicalDevice() {
     QueueFamilyIndices indices =
-        QueueFamilyIndices::findQueueFamilies(vulkanState.physicalDevice, vulkanState.surface);
+        QueueFamilyIndices::FindQueueFamilies(vulkanState.physicalDevice, vulkanState.surface);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(),
@@ -309,7 +309,7 @@ void VKRenderer::createLogicalDevice() {
 
     if (vkCreateDevice(vulkanState.physicalDevice, &createInfo, nullptr, &vulkanState.device) !=
         VK_SUCCESS) {
-        throw std::runtime_error("Failed to create logical device!");
+        RUNTIME_ERROR("Failed to create logical device!");
     }
 
     vkGetDeviceQueue(vulkanState.device, indices.graphicsFamily.value(), 0,
@@ -317,11 +317,11 @@ void VKRenderer::createLogicalDevice() {
     vkGetDeviceQueue(vulkanState.device, indices.presentFamily.value(), 0, &presentQueue);
 }
 
-bool VKRenderer::hasStencilComponent(VkFormat format) {
+bool VKRenderer::HasStencilComponent(VkFormat format) {
     return format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT;
 }
 
-uint32_t VKRenderer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+uint32_t VKRenderer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(vulkanState.physicalDevice, &memProperties);
 
@@ -332,10 +332,10 @@ uint32_t VKRenderer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags p
         }
     }
 
-    throw std::runtime_error("Failed to find suitable memory type!");
+    RUNTIME_ERROR("Failed to find suitable memory type!");
 }
 
-void VKRenderer::createSyncObjects() {
+void VKRenderer::CreateSyncObjects() {
     imageAvailableSemaphores.resize(vulkanState.maxFramesInFlight);
     renderFinishedSemaphores.resize(vulkanState.maxFramesInFlight);
     inFlightFences.resize(vulkanState.maxFramesInFlight);
@@ -354,12 +354,12 @@ void VKRenderer::createSyncObjects() {
                               &renderFinishedSemaphores[i]) != VK_SUCCESS ||
             vkCreateFence(vulkanState.device, &fenceInfo, nullptr, &inFlightFences[i]) !=
                 VK_SUCCESS) {
-            throw std::runtime_error("Failed to create synchronization objects for a frame!");
+            RUNTIME_ERROR("Failed to create synchronization objects for a frame!");
         }
     }
 }
 
-void VKRenderer::drawFrame(
+void VKRenderer::DrawFrame(
     std::function<void(VulkanState& vulkanState, VkCommandBuffer commandBuffer, uint32_t imageIndex,
                        uint32_t currentFrame)>
         renderCallback,
@@ -368,27 +368,27 @@ void VKRenderer::drawFrame(
     vkWaitForFences(vulkanState.device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
     uint32_t imageIndex;
-    VkResult result = vulkanState.swapchain.getNextImage(
+    VkResult result = vulkanState.swapchain.GetNextImage(
         vulkanState.device, imageAvailableSemaphores[currentFrame], imageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-        waitWhileMinimized();
+        WaitWhileMinimized();
         int32_t width;
         int32_t height;
         SDL_Vulkan_GetDrawableSize(window, &width, &height);
-        vulkanState.swapchain.recreate(vulkanState.allocator, vulkanState.device,
+        vulkanState.swapchain.Recreate(vulkanState.allocator, vulkanState.device,
                                        vulkanState.physicalDevice, vulkanState.surface, width,
                                        height);
         resizeCallback(vulkanState, width, height);
         return;
     } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-        throw std::runtime_error("Failed to acquire swap chain image!");
+        RUNTIME_ERROR("Failed to acquire swap chain image!");
     }
 
     vkResetFences(vulkanState.device, 1, &inFlightFences[currentFrame]);
 
-    vulkanState.commands.resetBuffer(imageIndex, currentFrame);
-    const VkCommandBuffer& currentBuffer = vulkanState.commands.getBuffer(currentFrame);
+    vulkanState.commands.ResetBuffer(imageIndex, currentFrame);
+    const VkCommandBuffer& currentBuffer = vulkanState.commands.GetBuffer(currentFrame);
     renderCallback(vulkanState, currentBuffer, imageIndex, currentFrame);
 
     VkSubmitInfo submitInfo{};
@@ -409,7 +409,7 @@ void VKRenderer::drawFrame(
 
     if (vkQueueSubmit(vulkanState.graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) !=
         VK_SUCCESS) {
-        throw std::runtime_error("Failed to submit draw command buffer!");
+        RUNTIME_ERROR("Failed to submit draw command buffer!");
     }
 
     VkPresentInfoKHR presentInfo{};
@@ -418,7 +418,7 @@ void VKRenderer::drawFrame(
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = signalSemaphores;
 
-    VkSwapchainKHR swapChains[] = {vulkanState.swapchain.getSwapchain()};
+    VkSwapchainKHR swapChains[] = {vulkanState.swapchain.GetSwapchain()};
     presentInfo.swapchainCount = 1;
     presentInfo.pSwapchains = swapChains;
 
@@ -428,30 +428,30 @@ void VKRenderer::drawFrame(
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || framebufferResized) {
         framebufferResized = false;
-        waitWhileMinimized();
+        WaitWhileMinimized();
         int32_t width;
         int32_t height;
         SDL_Vulkan_GetDrawableSize(window, &width, &height);
-        vulkanState.swapchain.recreate(vulkanState.allocator, vulkanState.device,
+        vulkanState.swapchain.Recreate(vulkanState.allocator, vulkanState.device,
                                        vulkanState.physicalDevice, vulkanState.surface, width,
                                        height);
         resizeCallback(vulkanState, width, height);
     } else if (result != VK_SUCCESS) {
-        throw std::runtime_error("Failed to present swap chain image!");
+        RUNTIME_ERROR("Failed to present swap chain image!");
     }
 
     currentFrame = (currentFrame + 1) % vulkanState.maxFramesInFlight;
 }
 
-bool VKRenderer::isDeviceSuitable(VkPhysicalDevice device) {
-    QueueFamilyIndices indices = QueueFamilyIndices::findQueueFamilies(device, vulkanState.surface);
+bool VKRenderer::IsDeviceSuitable(VkPhysicalDevice device) {
+    QueueFamilyIndices indices = QueueFamilyIndices::FindQueueFamilies(device, vulkanState.surface);
 
-    bool extensionsSupported = checkDeviceExtensionSupport(device);
+    bool extensionsSupported = CheckDeviceExtensionSupport(device);
 
     bool swapChainAdequate = false;
     if (extensionsSupported) {
         SwapchainSupportDetails swapchainSupport =
-            vulkanState.swapchain.querySupport(device, vulkanState.surface);
+            vulkanState.swapchain.QuerySupport(device, vulkanState.surface);
         swapChainAdequate =
             !swapchainSupport.formats.empty() && !swapchainSupport.presentModes.empty();
     }
@@ -459,11 +459,11 @@ bool VKRenderer::isDeviceSuitable(VkPhysicalDevice device) {
     VkPhysicalDeviceFeatures supportedFeatures;
     vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
-    return indices.isComplete() && extensionsSupported && swapChainAdequate &&
+    return indices.IsComplete() && extensionsSupported && swapChainAdequate &&
            supportedFeatures.samplerAnisotropy;
 }
 
-bool VKRenderer::checkDeviceExtensionSupport(VkPhysicalDevice device) {
+bool VKRenderer::CheckDeviceExtensionSupport(VkPhysicalDevice device) {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
@@ -480,15 +480,15 @@ bool VKRenderer::checkDeviceExtensionSupport(VkPhysicalDevice device) {
     return requiredExtensions.empty();
 }
 
-std::vector<const char*> VKRenderer::getRequiredExtensions() {
+std::vector<const char*> VKRenderer::GetRequiredExtensions() {
     uint32_t extensionCount = 0;
     std::vector<const char*> extensions;
     if (!SDL_Vulkan_GetInstanceExtensions(window, &extensionCount, nullptr)) {
-        throw std::runtime_error("Unable to get Vulkan extensions!");
+        RUNTIME_ERROR("Unable to get Vulkan extensions!");
     }
     extensions.resize(extensionCount);
     if (!SDL_Vulkan_GetInstanceExtensions(window, &extensionCount, &extensions[0])) {
-        throw std::runtime_error("Unable to get Vulkan extensions!");
+        RUNTIME_ERROR("Unable to get Vulkan extensions!");
     }
 
     if (enableValidationLayers) {
@@ -498,7 +498,7 @@ std::vector<const char*> VKRenderer::getRequiredExtensions() {
     return extensions;
 }
 
-bool VKRenderer::checkValidationLayerSupport() {
+bool VKRenderer::CheckValidationLayerSupport() {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -523,7 +523,7 @@ bool VKRenderer::checkValidationLayerSupport() {
     return true;
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL VKRenderer::debugCallback(
+VKAPI_ATTR VkBool32 VKAPI_CALL VKRenderer::DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData) {

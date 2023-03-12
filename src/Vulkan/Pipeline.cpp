@@ -1,6 +1,6 @@
 #include "Pipeline.hpp"
 
-void Pipeline::createDescriptorSetLayout(
+void Pipeline::CreateDescriptorSetLayout(
     VkDevice device,
     std::function<void(std::vector<VkDescriptorSetLayoutBinding>&)> setupBindings) {
     this->setupBindings = setupBindings;
@@ -15,11 +15,11 @@ void Pipeline::createDescriptorSetLayout(
 
     if (vkCreateDescriptorSetLayout(device, &layoutInfo, nullptr, &descriptorSetLayout) !=
         VK_SUCCESS) {
-        throw std::runtime_error("Failed to create descriptor set layout!");
+        RUNTIME_ERROR("Failed to create descriptor set layout!");
     }
 }
 
-void Pipeline::createDescriptorPool(
+void Pipeline::CreateDescriptorPool(
     const uint32_t maxFramesInFlight, VkDevice device,
     std::function<void(std::vector<VkDescriptorPoolSize>& poolSizes)> setupPool) {
     this->setupPool = setupPool;
@@ -34,11 +34,11 @@ void Pipeline::createDescriptorPool(
     poolInfo.maxSets = static_cast<uint32_t>(maxFramesInFlight);
 
     if (vkCreateDescriptorPool(device, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create descriptor pool!");
+        RUNTIME_ERROR("Failed to create descriptor pool!");
     }
 }
 
-void Pipeline::createDescriptorSets(
+void Pipeline::CreateDescriptorSets(
     const uint32_t maxFramesInFlight, VkDevice device,
     std::function<void(std::vector<VkWriteDescriptorSet>&, VkDescriptorSet, uint32_t)>
         setupDescriptor) {
@@ -53,7 +53,7 @@ void Pipeline::createDescriptorSets(
 
     descriptorSets.resize(maxFramesInFlight);
     if (vkAllocateDescriptorSets(device, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to allocate descriptor sets!");
+        RUNTIME_ERROR("Failed to allocate descriptor sets!");
     }
 
     for (uint32_t i = 0; i < maxFramesInFlight; i++) {
@@ -62,13 +62,13 @@ void Pipeline::createDescriptorSets(
     }
 }
 
-void Pipeline::bind(VkCommandBuffer commandBuffer, int32_t currentFrame) {
+void Pipeline::Bind(VkCommandBuffer commandBuffer, int32_t currentFrame) {
     vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1,
                             &descriptorSets[currentFrame], 0, nullptr);
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
 }
 
-VkShaderModule Pipeline::createShaderModule(const std::vector<char>& code, VkDevice device) {
+VkShaderModule Pipeline::CreateShaderModule(const std::vector<char>& code, VkDevice device) {
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     createInfo.codeSize = code.size();
@@ -76,17 +76,17 @@ VkShaderModule Pipeline::createShaderModule(const std::vector<char>& code, VkDev
 
     VkShaderModule shaderModule;
     if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create shader module!");
+        RUNTIME_ERROR("Failed to create shader module!");
     }
 
     return shaderModule;
 }
 
-std::vector<char> Pipeline::readFile(const std::string& filename) {
+std::vector<char> Pipeline::ReadFile(const std::string& filename) {
     std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
     if (!file.is_open()) {
-        throw std::runtime_error("Failed to open file!");
+        RUNTIME_ERROR("Failed to open file!");
     }
 
     size_t fileSize = (size_t)file.tellg();
@@ -100,7 +100,7 @@ std::vector<char> Pipeline::readFile(const std::string& filename) {
     return buffer;
 }
 
-void Pipeline::cleanup(VkDevice device) {
+void Pipeline::Cleanup(VkDevice device) {
     vkDestroyPipeline(device, graphicsPipeline, nullptr);
     vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
     vkDestroyDescriptorPool(device, descriptorPool, nullptr);

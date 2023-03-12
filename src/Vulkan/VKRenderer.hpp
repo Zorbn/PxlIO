@@ -53,7 +53,7 @@ struct VulkanState {
 class VKRenderer {
 public:
     void
-    run(const std::string& windowTitle, const uint32_t windowWidth, const uint32_t windowHeight,
+    Run(const std::string& windowTitle, const uint32_t windowWidth, const uint32_t windowHeight,
         const uint32_t maxFramesInFlight,
         std::function<void(VulkanState& vulkanState, SDL_Window* window, int32_t width,
                            int32_t height)>
@@ -81,57 +81,57 @@ private:
 
     bool framebufferResized = false;
 
-    void initWindow(const std::string& windowTitle, const uint32_t windowWidth,
+    void InitWindow(const std::string& windowTitle, const uint32_t windowWidth,
                     const uint32_t windowHeight);
 
-    static void framebufferResizeCallback(SDL_Window* window, int width, int height);
+    static void FramebufferResizeCallback(SDL_Window* window, int width, int height);
 
-    void initVulkan(const uint32_t maxFramesInFlight,
+    void InitVulkan(const uint32_t maxFramesInFlight,
                     std::function<void(VulkanState& vulkanState, SDL_Window* window, int32_t width,
                                        int32_t height)>
                         initCallback);
-    void createInstance();
-    void createAllocator();
+    void CreateInstance();
+    void CreateAllocator();
     void createLogicalDevice();
 
-    void mainLoop(std::function<void(VulkanState& vulkanState, VkCommandBuffer commandBuffer,
+    void MainLoop(std::function<void(VulkanState& vulkanState, VkCommandBuffer commandBuffer,
                                      uint32_t imageIndex, uint32_t currentFrame)>
                       renderCallback,
                   std::function<void(VulkanState& vulkanState)> updateCallback,
                   std::function<void(VulkanState& vulkanState, int32_t width, int32_t height)>
                       resizeCallback);
-    void drawFrame(std::function<void(VulkanState& vulkanState, VkCommandBuffer commandBuffer,
+    void DrawFrame(std::function<void(VulkanState& vulkanState, VkCommandBuffer commandBuffer,
                                       uint32_t imageIndex, uint32_t currentFrame)>
                        renderCallback,
                    std::function<void(VulkanState& vulkanState, int32_t width, int32_t height)>
                        resizeCallback);
-    void waitWhileMinimized();
+    void WaitWhileMinimized();
 
-    void cleanup(std::function<void(VulkanState& vulkanState)> cleanupCallback);
+    void Cleanup(std::function<void(VulkanState& vulkanState)> cleanupCallback);
 
-    void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-    void setupDebugMessenger();
+    void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+    void SetupDebugMessenger();
 
-    void createSurface();
+    void CreateSurface();
 
-    void pickPhysicalDevice();
+    void PickPhysicalDevice();
 
-    bool hasStencilComponent(VkFormat format);
+    bool HasStencilComponent(VkFormat format);
 
-    void createUniformBuffers();
+    void CreateUniformBuffers();
 
-    uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-    void createSyncObjects();
+    void CreateSyncObjects();
 
-    bool isDeviceSuitable(VkPhysicalDevice device);
-    bool checkDeviceExtensionSupport(VkPhysicalDevice device);
-    QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-    std::vector<const char*> getRequiredExtensions();
-    bool checkValidationLayerSupport();
+    bool IsDeviceSuitable(VkPhysicalDevice device);
+    bool CheckDeviceExtensionSupport(VkPhysicalDevice device);
+    QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice device);
+    std::vector<const char*> GetRequiredExtensions();
+    bool CheckValidationLayerSupport();
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL
-    debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                   VkDebugUtilsMessageTypeFlagsEXT messageType,
                   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
 };

@@ -5,21 +5,22 @@
 #include <vector>
 
 #include "QueueFamilyIndices.hpp"
+#include "../Error.hpp"
 
 class Commands {
 public:
-    VkCommandBuffer beginSingleTime(VkQueue graphicsQueue, VkDevice device);
-    void endSingleTime(VkCommandBuffer commandBuffer, VkQueue graphicsQueue, VkDevice device);
+    VkCommandBuffer BeginSingleTime(VkQueue graphicsQueue, VkDevice device);
+    void EndSingleTime(VkCommandBuffer commandBuffer, VkQueue graphicsQueue, VkDevice device);
 
-    void createPool(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface);
+    void CreatePool(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface);
 
-    void createBuffers(VkDevice device, size_t maxFramesInFlight);
-    void resetBuffer(const uint32_t imageIndex, const uint32_t currentFrame);
-    void beginBuffer(const uint32_t currentFrame);
-    void endBuffer(const uint32_t currentFrame);
-    const VkCommandBuffer& getBuffer(const uint32_t currentFrame);
+    void CreateBuffers(VkDevice device, size_t maxFramesInFlight);
+    void ResetBuffer(const uint32_t imageIndex, const uint32_t currentFrame);
+    void BeginBuffer(const uint32_t currentFrame);
+    void EndBuffer(const uint32_t currentFrame);
+    const VkCommandBuffer& GetBuffer(const uint32_t currentFrame);
 
-    void destroy(VkDevice device);
+    void Destroy(VkDevice device);
 
 private:
     VkCommandPool commandPool;

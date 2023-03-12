@@ -20,50 +20,50 @@ Buffer::Buffer(VmaAllocator allocator, vk::DeviceSize byteSize, VkBufferUsageFla
 
     if (byteSize != 0 && vmaCreateBuffer(allocator, &bufferInfo, &allocCreateInfo, &buffer,
                                          &allocation, &allocInfo) != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create buffer!");
+        RUNTIME_ERROR("Failed to create buffer!");
     }
 }
 
-void Buffer::copyTo(VmaAllocator& allocator, VkQueue graphicsQueue, VkDevice device,
+void Buffer::CopyTo(VmaAllocator& allocator, VkQueue graphicsQueue, VkDevice device,
                     Commands& commands, Buffer& dst) {
-    if (byteSize == 0 || dst.getSize() == 0)
+    if (byteSize == 0 || dst.GetSize() == 0)
         return;
 
-    VkCommandBuffer commandBuffer = commands.beginSingleTime(graphicsQueue, device);
+    VkCommandBuffer commandBuffer = commands.BeginSingleTime(graphicsQueue, device);
 
     VkBufferCopy copyRegion{};
     copyRegion.size = dst.byteSize;
     vkCmdCopyBuffer(commandBuffer, buffer, dst.buffer, 1, &copyRegion);
 
-    commands.endSingleTime(commandBuffer, graphicsQueue, device);
+    commands.EndSingleTime(commandBuffer, graphicsQueue, device);
 }
 
-const VkBuffer& Buffer::getBuffer() { return buffer; }
+const VkBuffer& Buffer::GetBuffer() { return buffer; }
 
-size_t Buffer::getSize() { return byteSize; }
+size_t Buffer::GetSize() { return byteSize; }
 
-void Buffer::map(VmaAllocator allocator, void** data) {
+void Buffer::Map(VmaAllocator allocator, void** data) {
     if (byteSize == 0)
         return;
 
     vmaMapMemory(allocator, allocation, data);
 }
 
-void Buffer::unmap(VmaAllocator allocator) {
+void Buffer::Unmap(VmaAllocator allocator) {
     if (byteSize == 0)
         return;
 
     vmaUnmapMemory(allocator, allocation);
 }
 
-void Buffer::destroy(VmaAllocator& allocator) {
+void Buffer::Destroy(VmaAllocator& allocator) {
     if (byteSize == 0)
         return;
 
     vmaDestroyBuffer(allocator, buffer, allocation);
 }
 
-void Buffer::setData(const void* data) {
+void Buffer::SetData(const void* data) {
     if (byteSize == 0)
         return;
 

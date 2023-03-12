@@ -10,6 +10,7 @@
 
 #include "Image.hpp"
 #include "QueueFamilyIndices.hpp"
+#include "../Error.hpp"
 
 struct SwapchainSupportDetails {
     VkSurfaceCapabilitiesKHR capabilities;
@@ -19,24 +20,24 @@ struct SwapchainSupportDetails {
 
 class Swapchain {
 public:
-    void create(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
+    void Create(VkDevice device, VkPhysicalDevice physicalDevice, VkSurfaceKHR surface,
                 int32_t windowWidth, int32_t windowHeight,
                 VkPresentModeKHR preferredPresentMode = VK_PRESENT_MODE_MAILBOX_KHR);
-    void cleanup(VmaAllocator allocator, VkDevice device);
-    void recreate(VmaAllocator allocator, VkDevice device, VkPhysicalDevice physicalDevice,
+    void Cleanup(VmaAllocator allocator, VkDevice device);
+    void Recreate(VmaAllocator allocator, VkDevice device, VkPhysicalDevice physicalDevice,
                   VkSurfaceKHR surface, int32_t windowWidth, int32_t windowHeight);
 
-    SwapchainSupportDetails querySupport(VkPhysicalDevice device, VkSurfaceKHR surface);
-    VkSurfaceFormatKHR chooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-    VkPresentModeKHR choosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes,
+    SwapchainSupportDetails QuerySupport(VkPhysicalDevice device, VkSurfaceKHR surface);
+    VkSurfaceFormatKHR ChooseSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
+    VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes,
                                        VkPresentModeKHR preferredPresentMode);
-    VkExtent2D chooseExtent(const VkSurfaceCapabilitiesKHR& capabilities, int32_t windowWidth,
+    VkExtent2D ChooseExtent(const VkSurfaceCapabilitiesKHR& capabilities, int32_t windowWidth,
                             int32_t windowHeight);
-    VkResult getNextImage(VkDevice device, VkSemaphore semaphore, uint32_t& imageIndex);
+    VkResult GetNextImage(VkDevice device, VkSemaphore semaphore, uint32_t& imageIndex);
 
-    const VkSwapchainKHR& getSwapchain();
-    const VkExtent2D& getExtent();
-    const VkFormat& getImageFormat();
+    const VkSwapchainKHR& GetSwapchain();
+    const VkExtent2D& GetExtent();
+    const VkFormat& GetImageFormat();
 
 private:
     VkSwapchainKHR swapchain;

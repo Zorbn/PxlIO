@@ -7,7 +7,7 @@
 
 template <typename T> class UniformBuffer {
 public:
-    void create(const uint32_t maxFramesInFlight, VmaAllocator allocator) {
+    void Create(const uint32_t maxFramesInFlight, VmaAllocator allocator) {
         VkDeviceSize bufferByteSize = sizeof(T);
 
         buffers.resize(maxFramesInFlight);
@@ -16,26 +16,26 @@ public:
         for (size_t i = 0; i < maxFramesInFlight; i++) {
             buffers[i] =
                 Buffer(allocator, bufferByteSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, true);
-            buffers[i].map(allocator, &buffersMapped[i]);
+            buffers[i].Map(allocator, &buffersMapped[i]);
         }
     }
 
-    void update(const T& data) {
+    void Update(const T& data) {
         size_t bufferCount = buffersMapped.size();
         for (size_t i = 0; i < bufferCount; i++) {
             memcpy(buffersMapped[i], &data, sizeof(T));
         }
     }
 
-    const VkBuffer& getBuffer(uint32_t i) { return buffers[i].getBuffer(); }
+    const VkBuffer& GetBuffer(uint32_t i) { return buffers[i].GetBuffer(); }
 
-    size_t getDataSize() { return sizeof(T); }
+    size_t GetDataSize() { return sizeof(T); }
 
-    void destroy(VmaAllocator allocator) {
+    void Destroy(VmaAllocator allocator) {
         size_t bufferCount = buffers.size();
         for (size_t i = 0; i < bufferCount; i++) {
-            buffers[i].unmap(allocator);
-            buffers[i].destroy(allocator);
+            buffers[i].Unmap(allocator);
+            buffers[i].Destroy(allocator);
         }
     }
 
