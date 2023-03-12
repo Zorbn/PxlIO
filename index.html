@@ -1,0 +1,39 @@
+<html>
+	<head>
+		<base href="buildWeb/" target="_blank">
+	</head>
+	<body>
+		<p id="output" />
+        <style>
+            html,
+            body {
+                margin: 0;
+                overflow: hidden;
+            }
+
+            #canvas {
+                width: 100vw;
+                height: 100vh;
+            }
+        </style>
+        <canvas id="canvas"></canvas>
+		<script>
+            const canvas = document.getElementById('canvas');
+
+			var Module = {
+				print: (function() {
+					return function(text) {
+						console.log(text);
+					};
+				})(),
+				printErr: function(text) {
+						console.log(text);
+				},
+				canvas: (function() {
+					return canvas;
+				})()
+			};
+		</script>
+		<script src="emsc.js"></script>
+	</body>
+</html>
