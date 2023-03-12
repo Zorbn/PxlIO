@@ -364,7 +364,7 @@ SpriteBatch GLRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
 	glBindTexture(GL_TEXTURE_2D, texture.id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // TODO: Should user be able to choose between NEAREST and LINEAR?
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, format, textureWidth, textureHeight, 0, format, GL_UNSIGNED_BYTE, data);
@@ -403,7 +403,7 @@ void GLRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 	glBufferData(GL_ARRAY_BUFFER, spriteBatch.SpriteCount() * vertexValuesPerSprite * sizeof(float), &spriteBatch.Vertices()[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spriteModel.ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, spriteBatch.SpriteCount() * indexValuesPerSprite * sizeof(uint32_t), &spriteBatch.Indices()[0],
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, spriteBatch.SpriteCount() * indicesPerSprite * sizeof(uint32_t), &spriteBatch.Indices()[0],
 				 GL_STATIC_DRAW);
 
 	glUseProgram(shaderProgram);

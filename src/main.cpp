@@ -8,7 +8,7 @@
 
 int main(int argc, char **argv)
 {
-    VKRenderer rend("PxlRnd", 640, 480, 320, 240);
+    VKRenderer rend("PxlRnd", 640, 480, 640, 480);
 
     SDL_Window *window = rend.GetWindowPtr();
 
@@ -20,6 +20,7 @@ int main(int argc, char **argv)
     auto lastTime = std::chrono::high_resolution_clock::now();
 
     bool isRunning = true;
+    int32_t frame = 0;
     while (isRunning)
     {
         auto currentTime = std::chrono::high_resolution_clock::now();
@@ -63,6 +64,8 @@ int main(int argc, char **argv)
         }
         rend.DrawSpriteBatch(spriteBatch);
         rend.EndDrawing();
+
+        frame++;
     }
 
     rend.DestroySpriteBatch(spriteBatch);

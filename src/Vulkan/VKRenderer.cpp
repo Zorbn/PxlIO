@@ -40,16 +40,22 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
     }
 }
 
+// TODO: Support view width/view height
+// TODO: Support vsync toggle
 VKRenderer::VKRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight,
                        int32_t viewWidth, int32_t viewHeight, bool enableVsync)
 {
     InitWindow(windowName, windowWidth, windowHeight);
-    InitVulkan(maxFramesInFlight);
+    InitVulkan(maxFramesInFlight, viewWidth, viewHeight);
+    ResizeWindow(windowWidth, windowHeight);
 }
 
-void VKRenderer::ResizeWindow(int width, int height)
+void VKRenderer::ResizeWindow(int windowWidth, int windowHeight)
 {
-    // TODO
+    this->windowWidth = windowWidth;
+    this->windowHeight = windowHeight;
+
+    framebufferResized = true;
 }
 
 SDL_Window *VKRenderer::GetWindowPtr()
@@ -65,6 +71,12 @@ void VKRenderer::SetBackgroundColor(float r, float g, float b)
 void VKRenderer::SetScreenBackgroundColor(float r, float g, float b)
 {
     // TODO
+}
+
+void VKRenderer::HandleResize()
+{
+    renderPass.Recreate(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator,
+                        vulkanState.swapchain);
 }
 
 void VKRenderer::BeginDrawing()
@@ -84,6 +96,7 @@ void VKRenderer::BeginDrawing()
                                        vulkanState.physicalDevice, vulkanState.surface, width,
                                        height);
         // resizeCallback(vulkanState, width, height); CALLBACK: RESIZE
+        HandleResize();
         return;
     }
     else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
@@ -94,7 +107,6 @@ void VKRenderer::BeginDrawing()
     vkResetFences(vulkanState.device, 1, &inFlightFences[currentFrame]);
 
     vulkanState.commands.ResetBuffer(currentImageIndex, currentFrame);
-    // currentBuffer = vulkanState.commands.GetBuffer(currentFrame);
 }
 
 void VKRenderer::EndDrawing()
@@ -148,6 +160,7 @@ void VKRenderer::EndDrawing()
                                        vulkanState.physicalDevice, vulkanState.surface, width,
                                        height);
         // resizeCallback(vulkanState, width, height); CALLBACK: RESIZE
+        HandleResize();
     }
     else if (result != VK_SUCCESS)
     {
@@ -160,12 +173,128 @@ void VKRenderer::EndDrawing()
 SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites)
 {
     // TODO
-    return SpriteBatch(1, 1, 1);
+
+    Image textureImage = Image::CreateTexture(texturePath, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device, false);
+    VkImageView textureImageView = textureImage.CreateTextureView(vulkanState.device);
+    VkSampler textureSampler = textureImage.CreateTextureSampler(vulkanState.physicalDevice, vulkanState.device, VK_FILTER_NEAREST, VK_FILTER_NEAREST);
+
+    int32_t textureWidth = static_cast<uint32_t>(textureImage.GetWidth());
+    int32_t textureHeight = static_cast<uint32_t>(textureImage.GetHeight());
+
+    auto spriteBatch = SpriteBatch(textureWidth, textureHeight, maxSprites);
+
+    Pipeline pipeline;
+    pipeline.CreateDescriptorSetLayout(
+        vulkanState.device, [&](std::vector<VkDescriptorSetLayoutBinding> &bindings)
+        {
+                VkDescriptorSetLayoutBinding uboLayoutBinding{};
+                uboLayoutBinding.binding = 0;
+                uboLayoutBinding.descriptorCount = 1;
+                uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+                uboLayoutBinding.pImmutableSamplers = nullptr;
+                uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+                VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+                samplerLayoutBinding.binding = 1;
+                samplerLayoutBinding.descriptorCount = 1;
+                samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                samplerLayoutBinding.pImmutableSamplers = nullptr;
+                samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
+                bindings.push_back(uboLayoutBinding);
+                bindings.push_back(samplerLayoutBinding); });
+    pipeline.CreateDescriptorPool(
+        vulkanState.maxFramesInFlight, vulkanState.device,
+        [&](std::vector<VkDescriptorPoolSize> poolSizes)
+        {
+            poolSizes.resize(2);
+            poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            poolSizes[0].descriptorCount = static_cast<uint32_t>(vulkanState.maxFramesInFlight);
+            poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            poolSizes[1].descriptorCount = static_cast<uint32_t>(vulkanState.maxFramesInFlight);
+        });
+    pipeline.CreateDescriptorSets(
+        vulkanState.maxFramesInFlight, vulkanState.device,
+        [&](std::vector<VkWriteDescriptorSet> &descriptorWrites, VkDescriptorSet descriptorSet,
+            uint32_t i)
+        {
+            VkDescriptorBufferInfo bufferInfo{};
+            bufferInfo.buffer = ubo.GetBuffer(i);
+            bufferInfo.offset = 0;
+            bufferInfo.range = ubo.GetDataSize();
+
+            VkDescriptorImageInfo imageInfo{};
+            imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageInfo.imageView = textureImageView;
+            imageInfo.sampler = textureSampler;
+
+            descriptorWrites.resize(2);
+
+            descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[0].dstSet = descriptorSet;
+            descriptorWrites[0].dstBinding = 0;
+            descriptorWrites[0].dstArrayElement = 0;
+            descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorWrites[0].descriptorCount = 1;
+            descriptorWrites[0].pBufferInfo = &bufferInfo;
+
+            descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            descriptorWrites[1].dstSet = descriptorSet;
+            descriptorWrites[1].dstBinding = 1;
+            descriptorWrites[1].dstArrayElement = 0;
+            descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            descriptorWrites[1].descriptorCount = 1;
+            descriptorWrites[1].pImageInfo = &imageInfo;
+
+            vkUpdateDescriptorSets(vulkanState.device,
+                                   static_cast<uint32_t>(descriptorWrites.size()),
+                                   descriptorWrites.data(), 0, nullptr);
+        });
+    pipeline.Create<VertexData, InstanceData>("res/VKSprite.vert.spv", "res/VKSprite.frag.spv",
+                                              vulkanState.device, renderPass, false);
+
+    VKSpriteBatchData spriteBatchData{
+        textureImage,
+        textureImageView,
+        textureSampler,
+        pipeline,
+    };
+
+    spriteBatchDatas.insert(std::make_pair(spriteBatch.Id(), spriteBatchData));
+
+    return spriteBatch;
 }
 
 void VKRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 {
     // TODO
+    if (spriteBatchDatas.find(spriteBatch.Id()) == spriteBatchDatas.end())
+    {
+        return;
+    }
+
+    auto spriteBatchData = spriteBatchDatas.at(spriteBatch.Id());
+
+    const VertexData *vertices = reinterpret_cast<const VertexData *>(&spriteBatch.Vertices()[0]);
+    size_t vertexCount = spriteBatch.SpriteCount() * verticesPerSprite;
+    size_t indexCount = spriteBatch.SpriteCount() * indicesPerSprite;
+
+    spriteModel.Update(vertices, &spriteBatch.Indices()[0], vertexCount, indexCount, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
+
+    // TODO: Move this command buffer stuff to begin/end draw.
+    const VkExtent2D &extent = vulkanState.swapchain.GetExtent();
+    const VkCommandBuffer &currentBuffer = vulkanState.commands.GetBuffer(currentFrame);
+
+    vulkanState.commands.BeginBuffer(currentFrame);
+
+    renderPass.Begin(currentImageIndex, currentBuffer, extent, clearValues);
+    spriteBatchData.pipeline.Bind(currentBuffer, currentFrame);
+
+    spriteModel.Draw(currentBuffer);
+
+    renderPass.End(currentBuffer);
+
+    vulkanState.commands.EndBuffer(currentFrame);
 }
 
 void VKRenderer::DestroySpriteBatch(SpriteBatch &spriteBatch)
@@ -191,7 +320,36 @@ void VKRenderer::InitWindow(const std::string &windowName, const uint32_t window
                               SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 }
 
-void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
+// An alternative to glm::ortho that is designed to work with Vulkan.
+// The normal glm projection matrix functions have unexpected behavior.
+glm::mat4 VkOrtho(float left, float right, float bottom, float top,
+    float near, float far)
+{
+    glm::mat4 ortho;
+    ortho[0][0] = 2.0f / (right - left);
+    ortho[0][1] = 0.0f;
+    ortho[0][2] = 0.0f;
+    ortho[0][3] = 0.0f;
+
+    ortho[1][0] = 0.0f;
+    ortho[1][1] = 2.0f / (bottom - top);
+    ortho[1][2] = 0.0f;
+    ortho[1][3] = 0.0f;
+
+    ortho[2][0] = 0.0f;
+    ortho[2][1] = 0.0f;
+    ortho[2][2] = -1.0f / (near - far);
+    ortho[2][3] = 0.0f;
+
+    ortho[3][0] = -(right + left) / (right - left);
+    ortho[3][1] = -(bottom + top) / (bottom - top);
+    ortho[3][2] = near / (near - far);
+    ortho[3][3] = 1.0f;
+
+    return ortho;
+}
+
+void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight, int32_t viewWidth, int32_t viewHeight)
 {
 
     CreateInstance();
@@ -209,12 +367,29 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
 
     // CALLBACK: Init here
     // initCallback(vulkanState, window, width, height);
-
     vulkanState.swapchain.Create(vulkanState.device, vulkanState.physicalDevice,
                                  vulkanState.surface, width, height);
     vulkanState.commands.CreatePool(vulkanState.physicalDevice, vulkanState.device,
-                                        vulkanState.surface);
-        vulkanState.commands.CreateBuffers(vulkanState.device, vulkanState.maxFramesInFlight);
+                                    vulkanState.surface);
+    vulkanState.commands.CreateBuffers(vulkanState.device, vulkanState.maxFramesInFlight);
+
+    renderPass.Create(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator, vulkanState.swapchain, true, true);
+
+    clearValues.resize(2);
+    clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+    clearValues[1].depthStencil = {1.0f, 0};
+
+    ubo.Create(vulkanState.maxFramesInFlight, vulkanState.allocator);
+
+    UniformBufferData uboData{};
+    uboData.proj = VkOrtho(0.0f, 640.0f, 0.0f,
+                                480.0f, zNear, zFar);
+
+    ubo.Update(uboData);
+
+    spriteModel = Model<VertexData, uint32_t, InstanceData>::Create(1, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device);
+    std::vector<InstanceData> instances = {InstanceData{}};
+    spriteModel.UpdateInstances(instances, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
 
     CreateSyncObjects();
 }
@@ -234,33 +409,6 @@ void VKRenderer::CreateAllocator()
     aci.pVulkanFunctions = &vkFuncs;
 
     vmaCreateAllocator(&aci, &vulkanState.allocator);
-}
-
-void VKRenderer::MainLoop() // TODO: Get rid of this.
-{
-    bool isRunning = true;
-    SDL_Event event;
-    while (isRunning)
-    {
-        while (SDL_PollEvent(&event))
-        {
-            switch (event.type)
-            {
-            case SDL_WINDOWEVENT:
-                if (event.window.event == SDL_WINDOWEVENT_RESIZED)
-                {
-                    framebufferResized = true;
-                }
-
-                break;
-            case SDL_QUIT:
-                isRunning = false;
-                break;
-            }
-        }
-
-        // DrawFrame(renderCallback, resizeCallback);
-    }
 }
 
 void VKRenderer::WaitWhileMinimized()
@@ -522,11 +670,6 @@ void VKRenderer::CreateSyncObjects()
             RUNTIME_ERROR("Failed to create synchronization objects for a frame!");
         }
     }
-}
-
-void VKRenderer::DrawFrame() // TODO: Remove this
-{
-    // renderCallback(vulkanState, currentBuffer, imageIndex, currentFrame);
 }
 
 bool VKRenderer::IsDeviceSuitable(VkPhysicalDevice device)

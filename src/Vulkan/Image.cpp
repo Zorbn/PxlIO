@@ -133,9 +133,9 @@ Buffer Image::LoadImage(const std::string &imagePath, VmaAllocator allocator, in
     SDL_Surface *surface = LoadSurface(imagePath);
 
     auto data = reinterpret_cast<uint8_t *>(surface->pixels);
-    auto textureWidth = surface->w;
-    auto textureHeight = surface->h;
-    size_t imageSize = textureWidth * textureHeight;
+    width = surface->w;
+    height = surface->h;
+    size_t imageSize = width * height;
     VkDeviceSize imageByteSize = imageSize * 4;
 
     Buffer stagingBuffer(allocator, imageByteSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, true);

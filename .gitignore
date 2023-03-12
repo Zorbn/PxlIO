@@ -1,3 +1,4 @@
 .vscode
 build
 buildWeb
+res/*.spv

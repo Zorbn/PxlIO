@@ -3,9 +3,10 @@
 #include <cinttypes>
 #include <vector>
 
+const uint32_t verticesPerSprite = 4;
 const uint32_t valuesPerSpriteVertex = 9;
-const uint32_t vertexValuesPerSprite = valuesPerSpriteVertex * 4;
-const uint32_t indexValuesPerSprite = 6;
+const uint32_t vertexValuesPerSprite = valuesPerSpriteVertex * verticesPerSprite;
+const uint32_t indicesPerSprite = 6;
 
 const std::vector<float> spriteVertices = {
     0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Bottom left
@@ -26,7 +27,7 @@ public:
         inverseTextureHeight = 1.0f / textureHeight;
 
         vertices = std::vector<float>(maxSprites * vertexValuesPerSprite);
-        indices = std::vector<uint32_t>(maxSprites * indexValuesPerSprite);
+        indices = std::vector<uint32_t>(maxSprites * indicesPerSprite);
     }
 
     inline void Clear()
@@ -45,7 +46,7 @@ public:
         }
 
         uint32_t vertexI = spriteCount * vertexValuesPerSprite;
-        uint32_t indexI = spriteCount * indexValuesPerSprite;
+        uint32_t indexI = spriteCount * indicesPerSprite;
         ++spriteCount;
         uint32_t batchVertexCount = static_cast<uint32_t>(vertexI / valuesPerSpriteVertex);
 

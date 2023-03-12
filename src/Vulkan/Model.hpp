@@ -74,6 +74,21 @@ public:
         vertexBuffer = Buffer::FromVertices(allocator, commands, graphicsQueue, device, vertices);
     }
 
+    // TODO: If this works back the vector version with this one
+    void Update(const V *vertices, const I *indices, size_t vertexCount, size_t indexCount, Commands &commands,
+                VmaAllocator allocator, VkQueue graphicsQueue, VkDevice device)
+    {
+        size = indexCount;
+
+        vkDeviceWaitIdle(device);
+
+        indexBuffer.Destroy(allocator);
+        vertexBuffer.Destroy(allocator);
+
+        indexBuffer = Buffer::FromIndices(allocator, commands, graphicsQueue, device, indices, indexCount);
+        vertexBuffer = Buffer::FromVertices(allocator, commands, graphicsQueue, device, vertices, vertexCount);
+    }
+
     void UpdateInstances(const std::vector<D> &instances, Commands &commands,
                          VmaAllocator allocator, VkQueue graphicsQueue, VkDevice device)
     {
