@@ -91,7 +91,7 @@ void VKRenderer::HandleResize()
 
     ScreenUniformBufferData screenUboData{};
     screenUboData.proj = VkOrtho(0.0f, static_cast<float>(windowWidth), 0.0f,
-                                 static_cast<float>(windowHeight), zNear, zFar);
+                                 static_cast<float>(windowHeight), -zMax, zMax);
     screenUboData.viewSize = glm::vec2(viewTransform.scaledViewWidth, viewTransform.scaledViewHeight);
     screenUboData.offset = glm::vec2(viewTransform.offsetX, viewTransform.offsetY);
 
@@ -415,7 +415,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
 
     UniformBufferData uboData{};
     uboData.proj = VkOrtho(0.0f, static_cast<float>(viewWidth), 0.0f,
-                           static_cast<float>(viewHeight), zNear, zFar);
+                           static_cast<float>(viewHeight), -zMax, zMax);
 
     ubo.Update(uboData);
 
@@ -1035,7 +1035,7 @@ glm::mat4 VKRenderer::VkOrtho(float left, float right, float bottom, float top,
 
     ortho[2][0] = 0.0f;
     ortho[2][1] = 0.0f;
-    ortho[2][2] = -1.0f / (near - far);
+    ortho[2][2] = 1.0f / (near - far);
     ortho[2][3] = 0.0f;
 
     ortho[3][0] = -(right + left) / (right - left);

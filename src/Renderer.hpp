@@ -14,8 +14,7 @@
 #include "Error.hpp"
 #include "SpriteBatch.hpp"
 
-const float zNear = 0.0f;
-const float zFar = 1000.0f;
+const float zMax = 1000.0f;
 
 struct ViewTransform
 {

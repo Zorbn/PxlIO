@@ -303,7 +303,7 @@ void GLRenderer::BeginDrawing()
 
 	float viewWidthFloat = static_cast<float>(viewWidth);
 	float viewHeightFloat = static_cast<float>(viewHeight);
-	glm::mat4 proj = glm::ortho<float>(0.0, viewWidthFloat, 0.0f, viewHeightFloat, zNear, zFar);
+	glm::mat4 proj = glm::ortho<float>(0.0, viewWidthFloat, 0.0f, viewHeightFloat, -zMax, zMax);
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, glm::value_ptr(proj));
 
 	glBindFramebuffer(GL_FRAMEBUFFER, screenFramebuffer);
