@@ -3,19 +3,18 @@
 #include <chrono>
 #include <cstdlib>
 
-#include "Vulkan/VKRenderer.hpp"
-#include "OpenGL/GLRenderer.hpp"
+#include "PxlRnd.hpp"
 
 int main(int argc, char **argv)
 {
-    VKRenderer rend("PxlRnd", 640, 480, 320, 240, true);
+    std::shared_ptr<Renderer> rend = PxlRnd::Create("PxlRnd", 640, 480, 320, 240, true);
 
-    SDL_Window *window = rend.GetWindowPtr();
+    SDL_Window *window = rend->GetWindowPtr();
 
-    rend.SetBackgroundColor(0, 0, 0.2f);
-    rend.SetScreenBackgroundColor(1, 1, 1);
+    rend->SetBackgroundColor(0, 0, 0.2f);
+    rend->SetScreenBackgroundColor(1, 1, 1);
 
-    auto spriteBatch = rend.CreateSpriteBatch("res/tiles.png", 50000);
+    auto spriteBatch = rend->CreateSpriteBatch("res/tiles.png", 50000);
 
     auto lastTime = std::chrono::high_resolution_clock::now();
 
@@ -35,7 +34,7 @@ int main(int argc, char **argv)
             {
                 if (event.window.event == SDL_WINDOWEVENT_RESIZED)
                 {
-                    rend.ResizeWindow(event.window.data1, event.window.data2);
+                    rend->ResizeWindow(event.window.data1, event.window.data2);
                 }
             }
 
@@ -56,19 +55,19 @@ int main(int argc, char **argv)
             }
         }
 
-        rend.BeginDrawing();
+        rend->BeginDrawing();
         spriteBatch.Clear();
         for (int32_t i = 0; i < 50'000; i++) {
             spriteBatch.Add(0, 0, 0, 64, 64, 0, 0, 64, 64);
         }
-        rend.DrawSpriteBatch(spriteBatch);
+        rend->DrawSpriteBatch(spriteBatch);
 
-        rend.EndDrawing();
+        rend->EndDrawing();
 
         frame++;
     }
 
-    rend.DestroySpriteBatch(spriteBatch);
+    rend->DestroySpriteBatch(spriteBatch);
 
     return 0;
 }

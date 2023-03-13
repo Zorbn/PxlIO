@@ -150,7 +150,7 @@ struct VKSpriteBatchData
     }
 };
 
-class VKRenderer : Renderer
+class VKRenderer : public Renderer
 {
 public:
     VKRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight,

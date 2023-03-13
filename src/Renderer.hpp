@@ -36,7 +36,7 @@ public:
 	virtual void EndDrawing() = 0;
 
 	virtual SpriteBatch CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites,
-		bool smooth = false, bool enableBlending = false) = 0;
+										  bool smooth = false, bool enableBlending = false) = 0;
 	virtual void DrawSpriteBatch(SpriteBatch &spriteBatch) = 0;
 	virtual void DestroySpriteBatch(SpriteBatch &spriteBatch) = 0;
 
@@ -67,5 +67,5 @@ public:
 			offsetX,
 			offsetY,
 		};
-	};
+	}
 };

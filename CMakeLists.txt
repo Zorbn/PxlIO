@@ -35,6 +35,7 @@ endif()
 add_executable(
     PxlRnd
     src/Main.cpp
+    src/PxlRnd.hpp
     src/Renderer.hpp
     src/SpriteBatch.hpp
     src/ImageLoader.cpp src/ImageLoader.hpp
