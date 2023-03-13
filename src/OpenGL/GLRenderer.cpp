@@ -389,6 +389,8 @@ void GLRenderer::DestroySpriteBatch(SpriteBatch &spriteBatch)
 	auto textureId = spriteBatchTextures.at(spriteBatch.Id()).id;
 
 	glDeleteTextures(1, &textureId);
+
+	spriteBatchTextures.erase(spriteBatch.Id());
 }
 
 void GLRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)

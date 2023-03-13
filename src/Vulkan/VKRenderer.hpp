@@ -138,6 +138,14 @@ struct VKSpriteBatchData
     VkImageView textureImageView;
     VkSampler textureSampler;
     Pipeline pipeline;
+
+    void Cleanup(VkDevice device, VmaAllocator allocator)
+    {
+        pipeline.Cleanup(device);
+        vkDestroySampler(device, textureSampler, nullptr);
+        vkDestroyImageView(device, textureImageView, nullptr);
+        textureImage.Destroy(allocator);
+    }
 };
 
 class VKRenderer : Renderer
@@ -165,6 +173,7 @@ private:
     int32_t windowHeight;
     int32_t viewWidth;
     int32_t viewHeight;
+    bool enableVsync;
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;

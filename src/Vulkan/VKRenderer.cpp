@@ -40,10 +40,9 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT
     }
 }
 
-// TODO: Support vsync toggle
 VKRenderer::VKRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight,
                        int32_t viewWidth, int32_t viewHeight, bool enableVsync)
-    : windowWidth(windowWidth), windowHeight(windowHeight), viewWidth(viewWidth), viewHeight(viewHeight)
+    : windowWidth(windowWidth), windowHeight(windowHeight), viewWidth(viewWidth), viewHeight(viewHeight), enableVsync(enableVsync)
 {
     InitWindow(windowName);
     InitVulkan(maxFramesInFlight);
@@ -84,23 +83,23 @@ void VKRenderer::HandleResize()
 
     // TODO: This is used in GLRenderer and VKRenderer, factor it out.
     float widthRatio = windowWidth / static_cast<float>(viewWidth);
-	float heightRatio = windowHeight / static_cast<float>(viewHeight);
-	float scale = heightRatio;
+    float heightRatio = windowHeight / static_cast<float>(viewHeight);
+    float scale = heightRatio;
 
-	if (widthRatio < heightRatio)
-	{
-		scale = widthRatio;
-	}
+    if (widthRatio < heightRatio)
+    {
+        scale = widthRatio;
+    }
 
-	if (scale > 1.0f)
-	{
-		scale = glm::floor(scale);
-	}
+    if (scale > 1.0f)
+    {
+        scale = glm::floor(scale);
+    }
 
-	float scaledViewWidth = viewWidth * scale;
-	float scaledViewHeight = viewHeight * scale;
-	float offsetX = (windowWidth - scaledViewWidth) * 0.5f;
-	float offsetY = (windowHeight - scaledViewHeight) * 0.5f;
+    float scaledViewWidth = viewWidth * scale;
+    float scaledViewHeight = viewHeight * scale;
+    float offsetX = (windowWidth - scaledViewWidth) * 0.5f;
+    float offsetY = (windowHeight - scaledViewHeight) * 0.5f;
 
     ScreenUniformBufferData screenUboData{};
     screenUboData.proj = VkOrtho(0.0f, static_cast<float>(windowWidth), 0.0f,
@@ -338,7 +337,17 @@ void VKRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 
 void VKRenderer::DestroySpriteBatch(SpriteBatch &spriteBatch)
 {
-    // TODO
+    if (spriteBatchDatas.find(spriteBatch.Id()) == spriteBatchDatas.end())
+    {
+        return;
+    }
+
+    auto spriteBatchData = spriteBatchDatas.at(spriteBatch.Id());
+
+    vkDeviceWaitIdle(vulkanState.device);
+    spriteBatchData.Cleanup(vulkanState.device, vulkanState.allocator);
+
+    spriteBatchDatas.erase(spriteBatch.Id());
 }
 
 void VKRenderer::InitWindow(const std::string &windowName)
@@ -360,7 +369,6 @@ void VKRenderer::InitWindow(const std::string &windowName)
 
 void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
 {
-
     CreateInstance();
     SetupDebugMessenger();
     CreateSurface();
@@ -377,7 +385,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
     // CALLBACK: Init here
     // initCallback(vulkanState, window, width, height);
     vulkanState.swapchain.Create(vulkanState.device, vulkanState.physicalDevice,
-                                 vulkanState.surface, width, height);
+                                 vulkanState.surface, width, height, enableVsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR);
     vulkanState.commands.CreatePool(vulkanState.physicalDevice, vulkanState.device,
                                     vulkanState.surface);
     vulkanState.commands.CreateBuffers(vulkanState.device, vulkanState.maxFramesInFlight);
@@ -654,8 +662,27 @@ VKRenderer::~VKRenderer()
 
     vulkanState.swapchain.Cleanup(vulkanState.allocator, vulkanState.device);
 
+    // TODO: Remove callback markers.
     // CALLBACK: Cleanup here.
     // cleanupCallback(vulkanState);
+
+    for (auto it = spriteBatchDatas.begin(); it != spriteBatchDatas.end(); it++)
+    {
+        it->second.Cleanup(vulkanState.device, vulkanState.allocator);
+    }
+
+    screenPipeline.Cleanup(vulkanState.device);
+    renderPass.Cleanup(vulkanState.allocator, vulkanState.device);
+    screenRenderPass.Cleanup(vulkanState.allocator, vulkanState.device);
+
+
+    ubo.Destroy(vulkanState.allocator);
+    screenUbo.Destroy(vulkanState.allocator);
+
+    vkDestroySampler(vulkanState.device, screenColorSampler, nullptr);
+
+    spriteModel.Destroy(vulkanState.allocator);
+    screenModel.Destroy(vulkanState.allocator);
 
     vmaDestroyAllocator(vulkanState.allocator);
 
@@ -1003,7 +1030,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VKRenderer::DebugCallback(
 // An alternative to glm::ortho that is designed to work with Vulkan.
 // The normal glm projection matrix functions have unexpected behavior.
 glm::mat4 VKRenderer::VkOrtho(float left, float right, float bottom, float top,
-                  float near, float far)
+                              float near, float far)
 {
     glm::mat4 ortho;
     ortho[0][0] = 2.0f / (right - left);
