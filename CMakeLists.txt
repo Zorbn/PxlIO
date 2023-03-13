@@ -57,7 +57,7 @@ string(LENGTH "${CMAKE_SOURCE_DIR}/" SOURCE_PATH_SIZE)
 add_definitions("-DSOURCE_PATH_SIZE=${SOURCE_PATH_SIZE}")
 
 # Find packages, the following line is only necessary for VCPKG users.
-# set(VCPKG_TARGET_TRIPLET x64-windows-static)
+set(VCPKG_TARGET_TRIPLET x64-windows-static)
 include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 
 if(EMSCRIPTEN)

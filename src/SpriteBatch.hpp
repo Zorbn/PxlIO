@@ -22,8 +22,8 @@ const std::vector<uint32_t> spriteIndices = {0, 1, 2, 0, 2, 3};
 class SpriteBatch
 {
 public:
-    SpriteBatch(int32_t textureWidth, int32_t textureHeight, uint32_t maxSprites)
-        : id(nextId++), textureWidth(textureWidth), textureHeight(textureHeight), maxSprites(maxSprites)
+    SpriteBatch(int32_t textureWidth, int32_t textureHeight, uint32_t maxSprites, bool enableBlending = false)
+        : id(nextId++), textureWidth(textureWidth), textureHeight(textureHeight), maxSprites(maxSprites), hasBlending(enableBlending)
     {
         inverseTextureWidth = 1.0f / textureWidth;
         inverseTextureHeight = 1.0f / textureHeight;
@@ -105,6 +105,11 @@ public:
         return id;
     }
 
+    inline bool GetHasBlending()
+    {
+        return hasBlending;
+    }
+
 private:
     inline static uint32_t nextId;
     uint32_t id = 0;
@@ -116,4 +121,5 @@ private:
     std::vector<uint32_t> indices;
     uint32_t maxSprites = 0;
     uint32_t spriteCount = 0;
+    bool hasBlending = false;
 };

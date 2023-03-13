@@ -12,7 +12,7 @@ void main()
     vec4 texColor = texture(texSampler, fragTexCoord);
     texColor = vec4(mix(texColor.rgb, fragColor.rgb, fragColor.a), texColor.a);
 
-    if (texColor.a < 1.0)
+    if (texColor.a == 0.0)
     {
         discard;
     }

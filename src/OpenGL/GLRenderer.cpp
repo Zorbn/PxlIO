@@ -46,7 +46,7 @@ const char *fragmentShaderSource =
 	"	texColor = vec4(mix(texColor.rgb, Color.rgb, Color.a), texColor.a);\n"
 
 	"   // Don't render transparent pixels.\n"
-	"   if (texColor.a < 1.0)\n"
+	"   if (texColor.a == 0.0)\n"
 	"   {\n"
 	"       discard;\n"
 	"   }\n"
@@ -334,7 +334,8 @@ void GLRenderer::EndDrawing()
 #endif
 }
 
-SpriteBatch GLRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites, bool smooth)
+SpriteBatch GLRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites,
+	bool smooth, bool enableBlending)
 {
 	SDL_Surface *surface = LoadSurface(texturePath);
 
@@ -358,7 +359,7 @@ SpriteBatch GLRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
 
 	SDL_FreeSurface(surface);
 
-	auto spriteBatch = SpriteBatch(textureWidth, textureHeight, maxSprites);
+	auto spriteBatch = SpriteBatch(textureWidth, textureHeight, maxSprites, enableBlending);
 
 	spriteBatchTextures.insert(std::make_pair(spriteBatch.GetId(), texture));
 
@@ -400,8 +401,16 @@ void GLRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 	glBindVertexArray(spriteModel.vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spriteModel.ebo);
 
+	if (spriteBatch.GetHasBlending())
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
 	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(spriteBatch.GetIndices().size()),
 				   GL_UNSIGNED_INT, 0);
+
+	glDisable(GL_BLEND);
 }
 
 void GLRenderer::CheckShaderCompileError(uint32_t shader)

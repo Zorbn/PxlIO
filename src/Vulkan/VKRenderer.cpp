@@ -212,17 +212,20 @@ void VKRenderer::EndDrawing()
     currentFrame = (currentFrame + 1) % vulkanState.maxFramesInFlight;
 }
 
-SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites, bool smooth)
+SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites,
+    bool smooth, bool enableBlending)
 {
-    Image textureImage = Image::CreateTexture(texturePath, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device, false);
+    Image textureImage = Image::CreateTexture(texturePath, vulkanState.allocator, vulkanState.commands,
+        vulkanState.graphicsQueue, vulkanState.device, false);
     VkImageView textureImageView = textureImage.CreateTextureView(vulkanState.device);
     VkFilter filter = smooth ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-    VkSampler textureSampler = textureImage.CreateTextureSampler(vulkanState.physicalDevice, vulkanState.device, filter, filter);
+    VkSampler textureSampler = textureImage.CreateTextureSampler(vulkanState.physicalDevice,
+        vulkanState.device, filter, filter);
 
     int32_t textureWidth = static_cast<uint32_t>(textureImage.GetWidth());
     int32_t textureHeight = static_cast<uint32_t>(textureImage.GetHeight());
 
-    auto spriteBatch = SpriteBatch(textureWidth, textureHeight, maxSprites);
+    auto spriteBatch = SpriteBatch(textureWidth, textureHeight, maxSprites, enableBlending);
 
     Pipeline pipeline;
     pipeline.CreateDescriptorSetLayout(
@@ -292,7 +295,7 @@ SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
                                    descriptorWrites.data(), 0, nullptr);
         });
     pipeline.Create<VertexData, InstanceData>("res/VKSprite.vert.spv", "res/VKSprite.frag.spv",
-                                              vulkanState.device, renderPass, false);
+                                              vulkanState.device, renderPass, enableBlending);
 
     Model<VertexData, uint32_t, InstanceData> model = Model<VertexData, uint32_t, InstanceData>::Create(1, vulkanState.allocator,
                                                                                                         vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device);
@@ -423,7 +426,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
         [&]
         {
             VkAttachmentDescription colorAttachment{};
-            colorAttachment.format = VK_FORMAT_R32G32B32A32_SFLOAT;
+            colorAttachment.format = vulkanState.swapchain.GetImageFormat();
             colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
             colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -501,7 +504,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
         [&](const VkExtent2D &extent)
         {
             screenColorImage = Image(vulkanState.allocator, viewWidth, viewHeight,
-                                     VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
+                                     vulkanState.swapchain.GetImageFormat(), VK_IMAGE_TILING_OPTIMAL,
                                      VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
             screenColorImageView =
