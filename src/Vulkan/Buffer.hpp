@@ -16,47 +16,14 @@ public:
     static Buffer FromIndices(VmaAllocator allocator, Commands &commands, VkQueue graphicsQueue,
                               VkDevice device, const std::vector<T> &indices)
     {
-        size_t indexSize = sizeof(indices[0]);
-
-        // Only accept 16 or 32 bit types.
-        if (indexSize != 2 && indexSize != 4)
-        {
-            RUNTIME_ERROR(
-                "Incorrect size when creating index buffer, indices should be 16 or 32 bit!");
-        }
-
-        VkDeviceSize bufferByteSize = indexSize * indices.size();
-
-        Buffer stagingBuffer(allocator, bufferByteSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, true);
-        stagingBuffer.SetData(indices.data());
-
-        Buffer indexBuffer(allocator, bufferByteSize,
-                           VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-                           false);
-
-        stagingBuffer.CopyTo(allocator, graphicsQueue, device, commands, indexBuffer);
-        stagingBuffer.Destroy(allocator);
-
-        return indexBuffer;
+        return FromIndices(allocator, commands, graphicsQueue, device, &indices[0], indices.size());
     }
 
     template <typename T>
     static Buffer FromVertices(VmaAllocator allocator, Commands &commands, VkQueue graphicsQueue,
                                VkDevice device, const std::vector<T> &vertices)
     {
-        VkDeviceSize bufferByteSize = sizeof(vertices[0]) * vertices.size();
-
-        Buffer stagingBuffer(allocator, bufferByteSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, true);
-        stagingBuffer.SetData(vertices.data());
-
-        Buffer vertexBuffer(allocator, bufferByteSize,
-                            VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
-                            false);
-
-        stagingBuffer.CopyTo(allocator, graphicsQueue, device, commands, vertexBuffer);
-        stagingBuffer.Destroy(allocator);
-
-        return vertexBuffer;
+        return FromVertices(allocator, commands, graphicsQueue, device, &vertices[0], vertices.size());
     }
 
     template <typename T>
@@ -87,7 +54,6 @@ public:
         return indexBuffer;
     }
 
-    // TODO: If these work they should back the From* methods that take vectors.
     template <typename T>
     static Buffer FromVertices(VmaAllocator allocator, Commands &commands, VkQueue graphicsQueue,
                                VkDevice device, T *vertices, size_t vertexCount)

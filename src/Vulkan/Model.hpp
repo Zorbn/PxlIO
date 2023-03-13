@@ -63,18 +63,9 @@ public:
     void Update(const std::vector<V> &vertices, const std::vector<I> &indices, Commands &commands,
                 VmaAllocator allocator, VkQueue graphicsQueue, VkDevice device)
     {
-        size = indices.size();
-
-        vkDeviceWaitIdle(device);
-
-        indexBuffer.Destroy(allocator);
-        vertexBuffer.Destroy(allocator);
-
-        indexBuffer = Buffer::FromIndices(allocator, commands, graphicsQueue, device, indices);
-        vertexBuffer = Buffer::FromVertices(allocator, commands, graphicsQueue, device, vertices);
+        Update(&vertices[0], &indices[0], commands, allocator, graphicsQueue, device);
     }
 
-    // TODO: If this works back the vector version with this one
     void Update(const V *vertices, const I *indices, size_t vertexCount, size_t indexCount, Commands &commands,
                 VmaAllocator allocator, VkQueue graphicsQueue, VkDevice device)
     {

@@ -85,31 +85,14 @@ void VKRenderer::HandleResize()
     screenPipeline.Recreate<VertexData, InstanceData>(
         vulkanState.device, vulkanState.maxFramesInFlight, screenRenderPass);
 
-    // TODO: This is used in GLRenderer and VKRenderer, factor it out.
-    float widthRatio = windowWidth / static_cast<float>(viewWidth);
-    float heightRatio = windowHeight / static_cast<float>(viewHeight);
-    float scale = heightRatio;
-
-    if (widthRatio < heightRatio)
-    {
-        scale = widthRatio;
-    }
-
-    if (scale > 1.0f)
-    {
-        scale = glm::floor(scale);
-    }
-
-    float scaledViewWidth = viewWidth * scale;
-    float scaledViewHeight = viewHeight * scale;
-    float offsetX = (windowWidth - scaledViewWidth) * 0.5f;
-    float offsetY = (windowHeight - scaledViewHeight) * 0.5f;
+    ViewTransform viewTransform = Renderer::CalcViewTransform(windowWidth, windowHeight,
+        viewWidth, viewHeight);
 
     ScreenUniformBufferData screenUboData{};
     screenUboData.proj = VkOrtho(0.0f, static_cast<float>(windowWidth), 0.0f,
                                  static_cast<float>(windowHeight), zNear, zFar);
-    screenUboData.viewSize = glm::vec2(scaledViewWidth, scaledViewHeight);
-    screenUboData.offset = glm::vec2(offsetX, offsetY);
+    screenUboData.viewSize = glm::vec2(viewTransform.scaledViewWidth, viewTransform.scaledViewHeight);
+    screenUboData.offset = glm::vec2(viewTransform.offsetX, viewTransform.offsetY);
 
     screenUbo.Update(screenUboData);
 }
@@ -319,25 +302,25 @@ SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
         model,
     };
 
-    spriteBatchDatas.insert(std::make_pair(spriteBatch.Id(), spriteBatchData));
+    spriteBatchDatas.insert(std::make_pair(spriteBatch.GetId(), spriteBatchData));
 
     return spriteBatch;
 }
 
 void VKRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 {
-    if (spriteBatchDatas.find(spriteBatch.Id()) == spriteBatchDatas.end())
+    if (spriteBatchDatas.find(spriteBatch.GetId()) == spriteBatchDatas.end())
     {
         return;
     }
 
-    auto &spriteBatchData = spriteBatchDatas.at(spriteBatch.Id());
+    auto &spriteBatchData = spriteBatchDatas.at(spriteBatch.GetId());
 
-    const VertexData *vertices = reinterpret_cast<const VertexData *>(&spriteBatch.Vertices()[0]);
-    size_t vertexCount = spriteBatch.SpriteCount() * verticesPerSprite;
-    size_t indexCount = spriteBatch.SpriteCount() * indicesPerSprite;
+    const VertexData *vertices = reinterpret_cast<const VertexData *>(&spriteBatch.GetVertices()[0]);
+    size_t vertexCount = spriteBatch.GetSpriteCount() * verticesPerSprite;
+    size_t indexCount = spriteBatch.GetSpriteCount() * indicesPerSprite;
 
-    spriteBatchData.model.Update(vertices, &spriteBatch.Indices()[0], vertexCount, indexCount, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
+    spriteBatchData.model.Update(vertices, &spriteBatch.GetIndices()[0], vertexCount, indexCount, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
 
     const VkCommandBuffer &currentBuffer = vulkanState.commands.GetBuffer(currentFrame);
 
@@ -348,17 +331,17 @@ void VKRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 
 void VKRenderer::DestroySpriteBatch(SpriteBatch &spriteBatch)
 {
-    if (spriteBatchDatas.find(spriteBatch.Id()) == spriteBatchDatas.end())
+    if (spriteBatchDatas.find(spriteBatch.GetId()) == spriteBatchDatas.end())
     {
         return;
     }
 
-    auto &spriteBatchData = spriteBatchDatas.at(spriteBatch.Id());
+    auto &spriteBatchData = spriteBatchDatas.at(spriteBatch.GetId());
 
     vkDeviceWaitIdle(vulkanState.device);
     spriteBatchData.Cleanup(vulkanState.device, vulkanState.allocator);
 
-    spriteBatchDatas.erase(spriteBatch.Id());
+    spriteBatchDatas.erase(spriteBatch.GetId());
 }
 
 void VKRenderer::InitWindow(const std::string &windowName)

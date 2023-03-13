@@ -1,6 +1,6 @@
 #pragma once
 
-#define GLM_FORCE_RADIANS // TODO: Does this mess with the opengl renderer?
+#define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "../Renderer.hpp"
 #include <SDL2/SDL_vulkan.h>
@@ -46,7 +46,7 @@ struct VertexData
     glm::vec2 texCoord;
     glm::vec4 color;
 
-    static VkVertexInputBindingDescription getBindingDescription()
+    static VkVertexInputBindingDescription GetBindingDescription()
     {
         VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 0;
@@ -56,7 +56,7 @@ struct VertexData
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+    static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
     {
         std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
 
@@ -81,7 +81,7 @@ struct VertexData
 
 struct InstanceData
 {
-    static VkVertexInputBindingDescription getBindingDescription()
+    static VkVertexInputBindingDescription GetBindingDescription()
     {
         VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 1;
@@ -91,7 +91,7 @@ struct InstanceData
         return bindingDescription;
     }
 
-    static std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
+    static std::vector<VkVertexInputAttributeDescription> GetAttributeDescriptions()
     {
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions{};
 

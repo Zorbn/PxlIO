@@ -271,28 +271,11 @@ void GLRenderer::ResizeWindow(int32_t windowWidth, int32_t windowHeight)
 											 0.0f, static_cast<float>(windowHeight), 0.0f, 1.0f);
 	glUniformMatrix4fv(screenProjLocation, 1, GL_FALSE, glm::value_ptr(screenProj));
 
-    // TODO: This is used in GLRenderer and VKRenderer, factor it out.
-	float widthRatio = windowWidth / static_cast<float>(viewWidth);
-	float heightRatio = windowHeight / static_cast<float>(viewHeight);
-	float scale = heightRatio;
+	ViewTransform viewTransform = Renderer::CalcViewTransform(windowWidth, windowHeight,
+        viewWidth, viewHeight);
 
-	if (widthRatio < heightRatio)
-	{
-		scale = widthRatio;
-	}
-
-	if (scale > 1.0f)
-	{
-		scale = glm::floor(scale);
-	}
-
-	float scaledViewWidth = viewWidth * scale;
-	float scaledViewHeight = viewHeight * scale;
-	float offsetX = (windowWidth - scaledViewWidth) * 0.5f;
-	float offsetY = (windowHeight - scaledViewHeight) * 0.5f;
-
-	glUniform2f(screenViewSizeLocation, scaledViewWidth, scaledViewHeight);
-	glUniform2f(screenOffsetLocation, offsetX, offsetY);
+	glUniform2f(screenViewSizeLocation, viewTransform.scaledViewWidth, viewTransform.scaledViewHeight);
+	glUniform2f(screenOffsetLocation, viewTransform.offsetX, viewTransform.offsetY);
 }
 
 SDL_Window *GLRenderer::GetWindowPtr()
@@ -374,39 +357,39 @@ SpriteBatch GLRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
 
 	auto spriteBatch = SpriteBatch(textureWidth, textureHeight, maxSprites);
 
-	spriteBatchTextures.insert(std::make_pair(spriteBatch.Id(), texture));
+	spriteBatchTextures.insert(std::make_pair(spriteBatch.GetId(), texture));
 
 	return spriteBatch;
 }
 
 void GLRenderer::DestroySpriteBatch(SpriteBatch &spriteBatch)
 {
-	if (spriteBatchTextures.find(spriteBatch.Id()) == spriteBatchTextures.end())
+	if (spriteBatchTextures.find(spriteBatch.GetId()) == spriteBatchTextures.end())
 	{
 		return;
 	}
 
-	auto &textureId = spriteBatchTextures.at(spriteBatch.Id()).id;
+	auto &textureId = spriteBatchTextures.at(spriteBatch.GetId()).id;
 
 	glDeleteTextures(1, &textureId);
 
-	spriteBatchTextures.erase(spriteBatch.Id());
+	spriteBatchTextures.erase(spriteBatch.GetId());
 }
 
 void GLRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 {
-	if (spriteBatchTextures.find(spriteBatch.Id()) == spriteBatchTextures.end())
+	if (spriteBatchTextures.find(spriteBatch.GetId()) == spriteBatchTextures.end())
 	{
 		return;
 	}
 
-	auto &textureId = spriteBatchTextures.at(spriteBatch.Id()).id;
+	auto &textureId = spriteBatchTextures.at(spriteBatch.GetId()).id;
 
 	glBindBuffer(GL_ARRAY_BUFFER, spriteModel.vbo);
-	glBufferData(GL_ARRAY_BUFFER, spriteBatch.SpriteCount() * vertexValuesPerSprite * sizeof(float), &spriteBatch.Vertices()[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, spriteBatch.GetSpriteCount() * vertexValuesPerSprite * sizeof(float), &spriteBatch.GetVertices()[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spriteModel.ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, spriteBatch.SpriteCount() * indicesPerSprite * sizeof(uint32_t), &spriteBatch.Indices()[0],
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, spriteBatch.GetSpriteCount() * indicesPerSprite * sizeof(uint32_t), &spriteBatch.GetIndices()[0],
 				 GL_STATIC_DRAW);
 
 	glUseProgram(shaderProgram);
@@ -414,7 +397,7 @@ void GLRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 	glBindVertexArray(spriteModel.vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, spriteModel.ebo);
 
-	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(spriteBatch.Indices().size()),
+	glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(spriteBatch.GetIndices().size()),
 				   GL_UNSIGNED_INT, 0);
 }
 

@@ -48,9 +48,9 @@ public:
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
         std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {
-            V::getBindingDescription(), I::getBindingDescription()};
-        auto vertexAttributeDescriptions = V::getAttributeDescriptions();
-        auto instanceAttributeDescriptions = I::getAttributeDescriptions();
+            V::GetBindingDescription(), I::GetBindingDescription()};
+        auto vertexAttributeDescriptions = V::GetAttributeDescriptions();
+        auto instanceAttributeDescriptions = I::GetAttributeDescriptions();
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
         attributeDescriptions.reserve(vertexAttributeDescriptions.size() +
                                       instanceAttributeDescriptions.size());

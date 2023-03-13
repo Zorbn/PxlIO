@@ -71,22 +71,22 @@ public:
         }
     }
 
-    inline const std::vector<float> &Vertices()
+    inline const std::vector<float> &GetVertices()
     {
         return vertices;
     }
 
-    inline const std::vector<uint32_t> &Indices()
+    inline const std::vector<uint32_t> &GetIndices()
     {
         return indices;
     }
 
-    inline uint32_t SpriteCount()
+    inline uint32_t GetSpriteCount()
     {
         return spriteCount;
     }
 
-    inline uint32_t Id()
+    inline uint32_t GetId()
     {
         return id;
     }

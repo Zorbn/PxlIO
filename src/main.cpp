@@ -3,12 +3,12 @@
 #include <chrono>
 #include <cstdlib>
 
-// #include "OpenGL/GLRenderer.hpp"
 #include "Vulkan/VKRenderer.hpp"
+#include "OpenGL/GLRenderer.hpp"
 
 int main(int argc, char **argv)
 {
-    VKRenderer rend("PxlRnd", 640, 480, 320, 240, true);
+    GLRenderer rend("PxlRnd", 640, 480, 320, 240, true);
 
     SDL_Window *window = rend.GetWindowPtr();
 

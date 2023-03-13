@@ -17,6 +17,14 @@
 const float zNear = 0.0f;
 const float zFar = 1000.0f;
 
+struct ViewTransform
+{
+	float scaledViewWidth;
+	float scaledViewHeight;
+	float offsetX;
+	float offsetY;
+};
+
 // TODO: Add a way to create a generic renderer and have the library choose GL or Vulkan for you.
 class Renderer
 {
@@ -32,4 +40,33 @@ public:
 	virtual SpriteBatch CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites) = 0;
 	virtual void DrawSpriteBatch(SpriteBatch &spriteBatch) = 0;
 	virtual void DestroySpriteBatch(SpriteBatch &spriteBatch) = 0;
+
+	static ViewTransform CalcViewTransform(int32_t windowWidth, int32_t windowHeight, int32_t viewWidth, int32_t viewHeight)
+	{
+		float widthRatio = windowWidth / static_cast<float>(viewWidth);
+		float heightRatio = windowHeight / static_cast<float>(viewHeight);
+		float scale = heightRatio;
+
+		if (widthRatio < heightRatio)
+		{
+			scale = widthRatio;
+		}
+
+		if (scale > 1.0f)
+		{
+			scale = glm::floor(scale);
+		}
+
+		float scaledViewWidth = viewWidth * scale;
+		float scaledViewHeight = viewHeight * scale;
+		float offsetX = (windowWidth - scaledViewWidth) * 0.5f;
+		float offsetY = (windowHeight - scaledViewHeight) * 0.5f;
+
+		return ViewTransform{
+			scaledViewWidth,
+			scaledViewHeight,
+			offsetX,
+			offsetY,
+		};
+	};
 };

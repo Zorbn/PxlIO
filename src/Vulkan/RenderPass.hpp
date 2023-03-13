@@ -34,7 +34,7 @@ public:
                                  VkFormatFeatureFlags features);
     VkFormat FindDepthFormat(VkPhysicalDevice physicalDevice);
 
-    const VkRenderPass& GetRenderPass(); // TODO: Either rename every getter to GetX() or rename every getter to X()
+    const VkRenderPass& GetRenderPass();
     const VkFramebuffer& GetFramebuffer(const uint32_t imageIndex);
     const VkSampleCountFlagBits GetMsaaSamples();
     const bool GetMsaaEnabled();
