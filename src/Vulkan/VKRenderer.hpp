@@ -170,12 +170,19 @@ public:
     void DestroySpriteBatch(SpriteBatch &spriteBatch) override;
 
 private:
-    SDL_Window *window;
-    int32_t windowWidth;
-    int32_t windowHeight;
-    int32_t viewWidth;
-    int32_t viewHeight;
-    bool enableVsync;
+    SDL_Window *window = nullptr;
+    int32_t windowWidth = 0;
+    int32_t windowHeight = 0;
+    int32_t viewWidth = 0;
+    int32_t viewHeight = 0;
+    bool enableVsync = false;
+
+    float backgroundR = 0.0f;
+    float backgroundG = 0.0f;
+    float backgroundB = 0.0f;
+    float screenBackgroundR = 0.0f;
+    float screenBackgroundG = 0.0f;
+    float screenBackgroundB = 0.0f;
 
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
@@ -249,4 +256,6 @@ private:
 
     static glm::mat4 VkOrtho(float left, float right, float bottom, float top,
                       float near, float far);
+
+    static VkClearColorValue ConvertClearColor(float r, float g, float b, VkFormat format);
 };

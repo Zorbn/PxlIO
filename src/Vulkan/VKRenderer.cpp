@@ -64,12 +64,16 @@ SDL_Window *VKRenderer::GetWindowPtr()
 
 void VKRenderer::SetBackgroundColor(float r, float g, float b)
 {
-    // TODO
+    backgroundR = r;
+    backgroundG = g;
+    backgroundB = b;
 }
 
 void VKRenderer::SetScreenBackgroundColor(float r, float g, float b)
 {
-    // TODO
+    screenBackgroundR = r;
+    screenBackgroundG = g;
+    screenBackgroundB = b;
 }
 
 void VKRenderer::HandleResize()
@@ -126,7 +130,6 @@ void VKRenderer::BeginDrawing()
         vulkanState.swapchain.Recreate(vulkanState.allocator, vulkanState.device,
                                        vulkanState.physicalDevice, vulkanState.surface, width,
                                        height);
-        // resizeCallback(vulkanState, width, height); CALLBACK: RESIZE
         HandleResize();
         return;
     }
@@ -144,6 +147,8 @@ void VKRenderer::BeginDrawing()
 
     vulkanState.commands.BeginBuffer(currentFrame);
 
+    clearValues[0].color = ConvertClearColor(backgroundR, backgroundG, backgroundB,
+        vulkanState.swapchain.GetImageFormat());
     renderPass.Begin(currentImageIndex, currentBuffer, extent, clearValues);
 }
 
@@ -154,6 +159,8 @@ void VKRenderer::EndDrawing()
 
     renderPass.End(currentBuffer);
 
+    clearValues[0].color = ConvertClearColor(screenBackgroundR, screenBackgroundG,
+        screenBackgroundB, vulkanState.swapchain.GetImageFormat());
     screenRenderPass.Begin(currentImageIndex, currentBuffer, extent, clearValues);
     screenPipeline.Bind(currentBuffer, currentFrame);
 
@@ -209,7 +216,6 @@ void VKRenderer::EndDrawing()
         vulkanState.swapchain.Recreate(vulkanState.allocator, vulkanState.device,
                                        vulkanState.physicalDevice, vulkanState.surface, width,
                                        height);
-        // resizeCallback(vulkanState, width, height); CALLBACK: RESIZE
         HandleResize();
     }
     else if (result != VK_SUCCESS)
@@ -320,7 +326,6 @@ SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
 
 void VKRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 {
-    // TODO
     if (spriteBatchDatas.find(spriteBatch.Id()) == spriteBatchDatas.end())
     {
         return;
@@ -328,7 +333,6 @@ void VKRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 
     auto &spriteBatchData = spriteBatchDatas.at(spriteBatch.Id());
 
-    // TODO: Test this when no sprites are added.
     const VertexData *vertices = reinterpret_cast<const VertexData *>(&spriteBatch.Vertices()[0]);
     size_t vertexCount = spriteBatch.SpriteCount() * verticesPerSprite;
     size_t indexCount = spriteBatch.SpriteCount() * indicesPerSprite;
@@ -389,8 +393,6 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
 
     vulkanState.maxFramesInFlight = maxFramesInFlight;
 
-    // CALLBACK: Init here
-    // initCallback(vulkanState, window, width, height);
     vulkanState.swapchain.Create(vulkanState.device, vulkanState.physicalDevice,
                                  vulkanState.surface, width, height, enableVsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR);
     vulkanState.commands.CreatePool(vulkanState.physicalDevice, vulkanState.device,
@@ -665,10 +667,6 @@ VKRenderer::~VKRenderer()
     vkDeviceWaitIdle(vulkanState.device);
 
     vulkanState.swapchain.Cleanup(vulkanState.allocator, vulkanState.device);
-
-    // TODO: Remove callback markers.
-    // CALLBACK: Cleanup here.
-    // cleanupCallback(vulkanState);
 
     for (auto it = spriteBatchDatas.begin(); it != spriteBatchDatas.end(); it++)
     {
@@ -1056,4 +1054,14 @@ glm::mat4 VKRenderer::VkOrtho(float left, float right, float bottom, float top,
     ortho[3][3] = 1.0f;
 
     return ortho;
+}
+
+VkClearColorValue VKRenderer::ConvertClearColor(float r, float g, float b, VkFormat format)
+{
+    if (format == VK_FORMAT_B8G8R8A8_SRGB || format == VK_FORMAT_R8G8B8_SRGB)
+    {
+        return {{glm::pow(r, 2.2f), glm::pow(g, 2.2f), glm::pow(b, 2.2f), 1.0f}};
+    }
+
+    return {{r, g, b, 1.0f}};
 }
