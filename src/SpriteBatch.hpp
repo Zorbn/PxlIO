@@ -2,6 +2,8 @@
 
 #include <cinttypes>
 #include <vector>
+#include <glm/glm.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
 
 const uint32_t verticesPerSprite = 4;
 const uint32_t valuesPerSpriteVertex = 9;
@@ -38,7 +40,8 @@ public:
     void Add(float x, float y, float depth, float width,
              float height, float texX, float texY,
              float texWidth, float texHeight,
-             float r, float g, float b, float a)
+             float originX = 0.0f, float originY = 0.0f, float rotation = 0.0f,
+             float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 0.0f)
     {
         if (spriteCount >= maxSprites)
         {
@@ -52,8 +55,19 @@ public:
 
         for (size_t i = 0; i < spriteVertices.size(); i += valuesPerSpriteVertex)
         {
-            vertices[vertexI + i] = x + spriteVertices[i] * width;
-            vertices[vertexI + i + 1] = y + spriteVertices[i + 1] * height;
+            float vertexX = spriteVertices[i];
+            float vertexY = spriteVertices[i + 1];
+
+            if (rotation != 0.0f)
+            {
+                auto rotatedVerts = glm::vec3(vertexX - originX, vertexY - originY, 0.0f) *
+                                    glm::rotate(glm::mat3(1.0f), glm::radians(rotation));
+                vertexX = rotatedVerts.x + originX;
+                vertexY = rotatedVerts.y + originY;
+            }
+
+            vertices[vertexI + i] = x + vertexX * width;
+            vertices[vertexI + i + 1] = y + vertexY * height;
             vertices[vertexI + i + 2] = depth + spriteVertices[i + 2];
             vertices[vertexI + i + 3] = texX * inverseTextureWidth +
                                         spriteVertices[i + 3] * texWidth * inverseTextureWidth;
