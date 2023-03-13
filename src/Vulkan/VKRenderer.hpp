@@ -138,6 +138,7 @@ struct VKSpriteBatchData
     VkImageView textureImageView;
     VkSampler textureSampler;
     Pipeline pipeline;
+    Model<VertexData, uint32_t, InstanceData> model;
 
     void Cleanup(VkDevice device, VmaAllocator allocator)
     {
@@ -145,6 +146,7 @@ struct VKSpriteBatchData
         vkDestroySampler(device, textureSampler, nullptr);
         vkDestroyImageView(device, textureImageView, nullptr);
         textureImage.Destroy(allocator);
+        model.Destroy(allocator);
     }
 };
 
@@ -205,7 +207,6 @@ private:
     UniformBuffer<UniformBufferData> ubo;
     UniformBuffer<ScreenUniformBufferData> screenUbo;
     Model<VertexData, uint32_t, InstanceData> screenModel;
-    Model<VertexData, uint32_t, InstanceData> spriteModel;
     std::unordered_map<uint32_t, VKSpriteBatchData> spriteBatchDatas;
 
     void InitWindow(const std::string &windowTitle);

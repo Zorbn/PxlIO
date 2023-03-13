@@ -16,6 +16,7 @@ int main(int argc, char **argv)
     rend.SetScreenBackgroundColor(1, 1, 1);
 
     auto spriteBatch = rend.CreateSpriteBatch("res/tiles.png", 50000);
+    auto spriteBatch2 = rend.CreateSpriteBatch("res/test.png", 50000);
 
     auto lastTime = std::chrono::high_resolution_clock::now();
 
@@ -26,7 +27,7 @@ int main(int argc, char **argv)
         auto currentTime = std::chrono::high_resolution_clock::now();
         auto deltaTime = static_cast<float>((currentTime - lastTime).count()) * 0.000001f;
         lastTime = currentTime;
-        std::cout << deltaTime << "\n";
+        // std::cout << deltaTime << "\n";
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -58,17 +59,21 @@ int main(int argc, char **argv)
 
         rend.BeginDrawing();
         spriteBatch.Clear();
+        spriteBatch2.Clear();
         for (int32_t i = 0; i < 1; i++)
         {
             spriteBatch.Add(0, 0, 0, 32, 32, 0, 40, 32, 32, 1.0f, 0.0f, 0.0f, 0.0f);
+            spriteBatch2.Add(48, 0, 0, 32, 32, 0, 40, 32, 32, 1.0f, 0.0f, 0.0f, 0.0f);
         }
         rend.DrawSpriteBatch(spriteBatch);
+        rend.DrawSpriteBatch(spriteBatch2);
         rend.EndDrawing();
 
         frame++;
     }
 
     rend.DestroySpriteBatch(spriteBatch);
+    rend.DestroySpriteBatch(spriteBatch2);
 
     return 0;
 }

@@ -138,10 +138,31 @@ void VKRenderer::BeginDrawing()
     vkResetFences(vulkanState.device, 1, &inFlightFences[currentFrame]);
 
     vulkanState.commands.ResetBuffer(currentImageIndex, currentFrame);
+
+    const VkExtent2D &extent = vulkanState.swapchain.GetExtent();
+    const VkCommandBuffer &currentBuffer = vulkanState.commands.GetBuffer(currentFrame);
+
+    vulkanState.commands.BeginBuffer(currentFrame);
+
+    renderPass.Begin(currentImageIndex, currentBuffer, extent, clearValues);
 }
 
 void VKRenderer::EndDrawing()
 {
+    const VkExtent2D &extent = vulkanState.swapchain.GetExtent();
+    const VkCommandBuffer &currentBuffer = vulkanState.commands.GetBuffer(currentFrame);
+
+    renderPass.End(currentBuffer);
+
+    screenRenderPass.Begin(currentImageIndex, currentBuffer, extent, clearValues);
+    screenPipeline.Bind(currentBuffer, currentFrame);
+
+    screenModel.Draw(currentBuffer);
+
+    screenRenderPass.End(currentBuffer);
+
+    vulkanState.commands.EndBuffer(currentFrame);
+
     VkSubmitInfo submitInfo{};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -150,8 +171,6 @@ void VKRenderer::EndDrawing()
     submitInfo.waitSemaphoreCount = 1;
     submitInfo.pWaitSemaphores = waitSemaphores;
     submitInfo.pWaitDstStageMask = waitStages;
-
-    const VkCommandBuffer &currentBuffer = vulkanState.commands.GetBuffer(currentFrame);
 
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers = &currentBuffer;
@@ -203,8 +222,6 @@ void VKRenderer::EndDrawing()
 
 SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites)
 {
-    // TODO
-
     Image textureImage = Image::CreateTexture(texturePath, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device, false);
     VkImageView textureImageView = textureImage.CreateTextureView(vulkanState.device);
     VkSampler textureSampler = textureImage.CreateTextureSampler(vulkanState.physicalDevice, vulkanState.device, VK_FILTER_NEAREST, VK_FILTER_NEAREST);
@@ -284,11 +301,16 @@ SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
     pipeline.Create<VertexData, InstanceData>("res/VKSprite.vert.spv", "res/VKSprite.frag.spv",
                                               vulkanState.device, renderPass, false);
 
+    Model<VertexData, uint32_t, InstanceData> model = Model<VertexData, uint32_t, InstanceData>::Create(1, vulkanState.allocator,
+                                                                                                        vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device);
+    model.UpdateInstances({InstanceData{}}, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
+
     VKSpriteBatchData spriteBatchData{
         textureImage,
         textureImageView,
         textureSampler,
         pipeline,
+        model,
     };
 
     spriteBatchDatas.insert(std::make_pair(spriteBatch.Id(), spriteBatchData));
@@ -304,35 +326,20 @@ void VKRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
         return;
     }
 
-    auto spriteBatchData = spriteBatchDatas.at(spriteBatch.Id());
+    auto &spriteBatchData = spriteBatchDatas.at(spriteBatch.Id());
 
+    // TODO: Test this when no sprites are added.
     const VertexData *vertices = reinterpret_cast<const VertexData *>(&spriteBatch.Vertices()[0]);
     size_t vertexCount = spriteBatch.SpriteCount() * verticesPerSprite;
     size_t indexCount = spriteBatch.SpriteCount() * indicesPerSprite;
 
-    spriteModel.Update(vertices, &spriteBatch.Indices()[0], vertexCount, indexCount, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
+    spriteBatchData.model.Update(vertices, &spriteBatch.Indices()[0], vertexCount, indexCount, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
 
-    // TODO: Move this command buffer stuff to begin/end draw.
-    const VkExtent2D &extent = vulkanState.swapchain.GetExtent();
     const VkCommandBuffer &currentBuffer = vulkanState.commands.GetBuffer(currentFrame);
 
-    vulkanState.commands.BeginBuffer(currentFrame);
-
-    renderPass.Begin(currentImageIndex, currentBuffer, extent, clearValues);
     spriteBatchData.pipeline.Bind(currentBuffer, currentFrame);
 
-    spriteModel.Draw(currentBuffer);
-
-    renderPass.End(currentBuffer);
-
-    screenRenderPass.Begin(currentImageIndex, currentBuffer, extent, clearValues);
-    screenPipeline.Bind(currentBuffer, currentFrame);
-
-    screenModel.Draw(currentBuffer);
-
-    screenRenderPass.End(currentBuffer);
-
-    vulkanState.commands.EndBuffer(currentFrame);
+    spriteBatchData.model.Draw(currentBuffer);
 }
 
 void VKRenderer::DestroySpriteBatch(SpriteBatch &spriteBatch)
@@ -342,7 +349,7 @@ void VKRenderer::DestroySpriteBatch(SpriteBatch &spriteBatch)
         return;
     }
 
-    auto spriteBatchData = spriteBatchDatas.at(spriteBatch.Id());
+    auto &spriteBatchData = spriteBatchDatas.at(spriteBatch.Id());
 
     vkDeviceWaitIdle(vulkanState.device);
     spriteBatchData.Cleanup(vulkanState.device, vulkanState.allocator);
@@ -621,9 +628,6 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
     screenModel = Model<VertexData, uint32_t, InstanceData>::FromVerticesAndIndices(screenVertices, screenIndices, 1, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device);
     screenModel.UpdateInstances({InstanceData{}}, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
 
-    spriteModel = Model<VertexData, uint32_t, InstanceData>::Create(1, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device);
-    spriteModel.UpdateInstances({InstanceData{}}, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
-
     CreateSyncObjects();
 }
 
@@ -675,13 +679,11 @@ VKRenderer::~VKRenderer()
     renderPass.Cleanup(vulkanState.allocator, vulkanState.device);
     screenRenderPass.Cleanup(vulkanState.allocator, vulkanState.device);
 
-
     ubo.Destroy(vulkanState.allocator);
     screenUbo.Destroy(vulkanState.allocator);
 
     vkDestroySampler(vulkanState.device, screenColorSampler, nullptr);
 
-    spriteModel.Destroy(vulkanState.allocator);
     screenModel.Destroy(vulkanState.allocator);
 
     vmaDestroyAllocator(vulkanState.allocator);

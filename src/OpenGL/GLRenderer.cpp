@@ -386,7 +386,7 @@ void GLRenderer::DestroySpriteBatch(SpriteBatch &spriteBatch)
 		return;
 	}
 
-	auto textureId = spriteBatchTextures.at(spriteBatch.Id()).id;
+	auto &textureId = spriteBatchTextures.at(spriteBatch.Id()).id;
 
 	glDeleteTextures(1, &textureId);
 
@@ -400,7 +400,7 @@ void GLRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
 		return;
 	}
 
-	auto textureId = spriteBatchTextures.at(spriteBatch.Id()).id;
+	auto &textureId = spriteBatchTextures.at(spriteBatch.Id()).id;
 
 	glBindBuffer(GL_ARRAY_BUFFER, spriteModel.vbo);
 	glBufferData(GL_ARRAY_BUFFER, spriteBatch.SpriteCount() * vertexValuesPerSprite * sizeof(float), &spriteBatch.Vertices()[0], GL_STATIC_DRAW);
