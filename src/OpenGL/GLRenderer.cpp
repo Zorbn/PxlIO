@@ -247,7 +247,7 @@ GLRenderer::GLRenderer(const std::string &windowName, int32_t windowWidth, int32
 	};
 
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
+	// Face culling is disabled to allow flipping sprites: glEnable(GL_CULL_FACE)
 
 	ResizeWindow(windowWidth, windowHeight);
 }
