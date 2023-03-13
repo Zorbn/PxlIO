@@ -7,15 +7,12 @@ enable_testing()
 
 add_subdirectory(deps/glad)
 
-add_executable(
-    PxlRnd
-    src/Main.cpp
-    src/Renderer.hpp
-    src/SpriteBatch.hpp
-    src/ImageLoader.cpp src/ImageLoader.hpp
-
+set(
+    OPENGL_SOURCE
     src/OpenGL/GLRenderer.cpp src/OpenGL/GLRenderer.hpp
-
+)
+set(
+    VULKAN_SOURCE
     src/Vulkan/Buffer.cpp src/Vulkan/Buffer.hpp
     src/Vulkan/Commands.cpp src/Vulkan/Commands.hpp
     src/Vulkan/Image.cpp src/Vulkan/Image.hpp
@@ -30,7 +27,25 @@ add_executable(
 )
 
 if(EMSCRIPTEN)
-    set_target_properties(PxlRnd PROPERTIES LINK_FLAGS "-O2 -sASYNCIFY -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='\"png\"' --preload-file ../res --profiling")
+    set(ENABLED_SOURCE ${OPENGL_SOURCE})
+else()
+    set(ENABLED_SOURCE ${OPENGL_SOURCE} ${VULKAN_SOURCE})
+endif()
+
+add_executable(
+    PxlRnd
+    src/Main.cpp
+    src/Renderer.hpp
+    src/SpriteBatch.hpp
+    src/ImageLoader.cpp src/ImageLoader.hpp
+
+    ${ENABLED_SOURCE}
+)
+
+if(EMSCRIPTEN)
+    set_target_properties(PxlRnd PROPERTIES LINK_FLAGS "-O2 -sASYNCIFY -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 \
+        -sMAX_WEBGL_VERSION=2 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='\"png\"' --preload-file ../res \
+        --profiling")
 endif()
 
 if(WIN32)
@@ -46,15 +61,11 @@ add_definitions("-DSOURCE_PATH_SIZE=${SOURCE_PATH_SIZE}")
 include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 
 if(EMSCRIPTEN)
-    find_package(SDL2 CONFIG REQUIRED)
     find_package(glm CONFIG REQUIRED)
 
     target_link_libraries(
         PxlRnd PRIVATE
-        $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
-        $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
         glm::glm
-        glad
     )
 else()
     find_package(SDL2 CONFIG REQUIRED)
