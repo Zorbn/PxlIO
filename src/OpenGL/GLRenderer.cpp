@@ -334,7 +334,7 @@ void GLRenderer::EndDrawing()
 #endif
 }
 
-SpriteBatch GLRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites)
+SpriteBatch GLRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites, bool smooth)
 {
 	SDL_Surface *surface = LoadSurface(texturePath);
 
@@ -348,10 +348,13 @@ SpriteBatch GLRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
 	glBindTexture(GL_TEXTURE_2D, texture.id);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // TODO: Should user be able to choose between NEAREST and LINEAR?
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	uint32_t minFilter = smooth ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST;
+	uint32_t magFilter = smooth ? GL_LINEAR : GL_NEAREST;
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
 	glTexImage2D(GL_TEXTURE_2D, 0, format, textureWidth, textureHeight, 0, format, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	SDL_FreeSurface(surface);
 

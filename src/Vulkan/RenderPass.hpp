@@ -11,39 +11,40 @@
 #include "Swapchain.hpp"
 #include "../Error.hpp"
 
-class RenderPass {
+class RenderPass
+{
 public:
     void
-    CreateCustom(VkDevice device, Swapchain& swapchain,
+    CreateCustom(VkDevice device, Swapchain &swapchain, uint32_t width, uint32_t height,
                  std::function<VkRenderPass()> setupRenderPass,
-                 std::function<void(const VkExtent2D& extent)> recreateCallback,
+                 std::function<void(const VkExtent2D &extent)> recreateCallback,
                  std::function<void()> cleanupCallback,
-                 std::function<void(std::vector<VkImageView>& attachments, VkImageView imageView)>
+                 std::function<void(std::vector<VkImageView> &attachments, VkImageView imageView)>
                      setupFramebuffer);
     void Create(VkPhysicalDevice physicalDevice, VkDevice device, VmaAllocator allocator,
-                Swapchain& swapchain, bool enableDepth, bool enableMsaa);
+                Swapchain &swapchain, bool enableDepth, bool enableMsaa);
     void Recreate(VkPhysicalDevice physicalDevice, VkDevice device, VmaAllocator allocator,
-                  Swapchain& swapchain);
+                  Swapchain &swapchain, uint32_t width, uint32_t height);
 
-    void Begin(const uint32_t imageIndex, VkCommandBuffer commandBuffer, VkExtent2D extent,
-               const std::vector<VkClearValue>& clearValues);
+    void Begin(const uint32_t imageIndex, VkCommandBuffer commandBuffer, uint32_t width,
+               uint32_t height, const std::vector<VkClearValue> &clearValues);
     void End(VkCommandBuffer commandBuffer);
 
     VkFormat FindSupportedFormat(VkPhysicalDevice physicalDevice,
-                                 const std::vector<VkFormat>& candidates, VkImageTiling tiling,
+                                 const std::vector<VkFormat> &candidates, VkImageTiling tiling,
                                  VkFormatFeatureFlags features);
     VkFormat FindDepthFormat(VkPhysicalDevice physicalDevice);
 
-    const VkRenderPass& GetRenderPass();
-    const VkFramebuffer& GetFramebuffer(const uint32_t imageIndex);
+    const VkRenderPass &GetRenderPass();
+    const VkFramebuffer &GetFramebuffer(const uint32_t imageIndex);
     const VkSampleCountFlagBits GetMsaaSamples();
     const bool GetMsaaEnabled();
 
     void Cleanup(VmaAllocator, VkDevice device);
 
 private:
-    void CreateImages(VkDevice device, Swapchain& swapchain);
-    void CreateFramebuffers(VkDevice device, VkExtent2D extent);
+    void CreateImages(VkDevice device, Swapchain &swapchain);
+    void CreateFramebuffers(VkDevice device, uint32_t width, uint32_t height);
     void CreateDepthResources(VmaAllocator allocator, VkPhysicalDevice physicalDevice,
                               VkDevice device, VkExtent2D extent);
     void CreateColorResources(VmaAllocator allocator, VkPhysicalDevice physicalDevice,
@@ -54,8 +55,8 @@ private:
     const VkSampleCountFlagBits GetMaxUsableSamples(VkPhysicalDevice physicalDevice);
 
     std::function<void()> cleanupCallback;
-    std::function<void(const VkExtent2D&)> recreateCallback;
-    std::function<void(std::vector<VkImageView>& attachments, VkImageView imageView)>
+    std::function<void(const VkExtent2D &)> recreateCallback;
+    std::function<void(std::vector<VkImageView> &attachments, VkImageView imageView)>
         setupFramebuffer;
 
     VkRenderPass renderPass;

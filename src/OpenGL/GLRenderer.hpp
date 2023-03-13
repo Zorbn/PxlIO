@@ -41,7 +41,7 @@ public:
 	void BeginDrawing() override;
 	void EndDrawing() override;
 
-	SpriteBatch CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites) override;
+	SpriteBatch CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites, bool smooth = false) override;
 	void DrawSpriteBatch(SpriteBatch &spriteBatch) override;
 	void DestroySpriteBatch(SpriteBatch &spriteBatch) override;
 

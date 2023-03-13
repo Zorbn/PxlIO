@@ -8,7 +8,7 @@
 
 int main(int argc, char **argv)
 {
-    GLRenderer rend("PxlRnd", 640, 480, 320, 240, true);
+    VKRenderer rend("PxlRnd", 640, 480, 320, 240, true);
 
     SDL_Window *window = rend.GetWindowPtr();
 
@@ -63,7 +63,7 @@ int main(int argc, char **argv)
         for (int32_t i = 0; i < 1; i++)
         {
             spriteBatch.Add(0, 0, 0, 32, 32, 0, 40, 32, 32, 1.0f, 0.0f, 0.0f, 0.0f);
-            spriteBatch2.Add(48, 0, 0, 32, 32, 0, 40, 32, 32, 1.0f, 0.0f, 0.0f, 0.0f);
+            spriteBatch2.Add(48, 0, 0, 128, 128, 0, 40, 32, 32, 1.0f, 0.0f, 0.0f, 0.0f);
         }
         rend.DrawSpriteBatch(spriteBatch);
         rend.DrawSpriteBatch(spriteBatch2);

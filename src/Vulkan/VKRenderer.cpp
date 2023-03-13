@@ -79,9 +79,10 @@ void VKRenderer::SetScreenBackgroundColor(float r, float g, float b)
 void VKRenderer::HandleResize()
 {
     renderPass.Recreate(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator,
-                        vulkanState.swapchain);
+                        vulkanState.swapchain, viewWidth, viewHeight);
+    const VkExtent2D &extent = vulkanState.swapchain.GetExtent();
     screenRenderPass.Recreate(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator,
-                              vulkanState.swapchain);
+                              vulkanState.swapchain, extent.width, extent.height);
     screenPipeline.Recreate<VertexData, InstanceData>(
         vulkanState.device, vulkanState.maxFramesInFlight, screenRenderPass);
 
@@ -132,7 +133,8 @@ void VKRenderer::BeginDrawing()
 
     clearValues[0].color = ConvertClearColor(backgroundR, backgroundG, backgroundB,
         vulkanState.swapchain.GetImageFormat());
-    renderPass.Begin(currentImageIndex, currentBuffer, extent, clearValues);
+    renderPass.Begin(currentImageIndex, currentBuffer, static_cast<uint32_t>(viewWidth),
+        static_cast<uint32_t>(viewHeight), clearValues);
 }
 
 void VKRenderer::EndDrawing()
@@ -144,7 +146,8 @@ void VKRenderer::EndDrawing()
 
     clearValues[0].color = ConvertClearColor(screenBackgroundR, screenBackgroundG,
         screenBackgroundB, vulkanState.swapchain.GetImageFormat());
-    screenRenderPass.Begin(currentImageIndex, currentBuffer, extent, clearValues);
+    screenRenderPass.Begin(currentImageIndex, currentBuffer, static_cast<uint32_t>(extent.width),
+        static_cast<uint32_t>(extent.height), clearValues);
     screenPipeline.Bind(currentBuffer, currentFrame);
 
     screenModel.Draw(currentBuffer);
@@ -209,11 +212,12 @@ void VKRenderer::EndDrawing()
     currentFrame = (currentFrame + 1) % vulkanState.maxFramesInFlight;
 }
 
-SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites)
+SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites, bool smooth)
 {
     Image textureImage = Image::CreateTexture(texturePath, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device, false);
     VkImageView textureImageView = textureImage.CreateTextureView(vulkanState.device);
-    VkSampler textureSampler = textureImage.CreateTextureSampler(vulkanState.physicalDevice, vulkanState.device, VK_FILTER_NEAREST, VK_FILTER_NEAREST);
+    VkFilter filter = smooth ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
+    VkSampler textureSampler = textureImage.CreateTextureSampler(vulkanState.physicalDevice, vulkanState.device, filter, filter);
 
     int32_t textureWidth = static_cast<uint32_t>(textureImage.GetWidth());
     int32_t textureHeight = static_cast<uint32_t>(textureImage.GetHeight());
@@ -415,7 +419,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
     screenUbo.Create(vulkanState.maxFramesInFlight, vulkanState.allocator);
 
     renderPass.CreateCustom(
-        vulkanState.device, vulkanState.swapchain,
+        vulkanState.device, vulkanState.swapchain, viewWidth, viewHeight,
         [&]
         {
             VkAttachmentDescription colorAttachment{};
@@ -496,7 +500,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
         },
         [&](const VkExtent2D &extent)
         {
-            screenColorImage = Image(vulkanState.allocator, extent.width, extent.height,
+            screenColorImage = Image(vulkanState.allocator, viewWidth, viewHeight,
                                      VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_TILING_OPTIMAL,
                                      VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
@@ -504,7 +508,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
                 screenColorImage.CreateView(VK_IMAGE_ASPECT_COLOR_BIT, vulkanState.device);
 
             VkFormat depthFormat = renderPass.FindDepthFormat(vulkanState.physicalDevice);
-            screenDepthImage = Image(vulkanState.allocator, extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+            screenDepthImage = Image(vulkanState.allocator, viewWidth, viewHeight, depthFormat, VK_IMAGE_TILING_OPTIMAL,
                                      VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
                                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
             screenDepthImageView = screenDepthImage.CreateView(VK_IMAGE_ASPECT_DEPTH_BIT, vulkanState.device);
