@@ -6,15 +6,15 @@
 #include <vector>
 
 const uint32_t verticesPerSprite = 4;
-const uint32_t valuesPerSpriteVertex = 9;
+const uint32_t valuesPerSpriteVertex = 10;
 const uint32_t vertexValuesPerSprite = valuesPerSpriteVertex * verticesPerSprite;
 const uint32_t indicesPerSprite = 6;
 
 const std::vector<float> spriteVertices = {
-    0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Bottom left
-    1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Bottom right
-    1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top right
-    0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top left
+    0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Bottom left
+    1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Bottom right
+    1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top right
+    0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top left
 };
 
 const std::vector<uint32_t> spriteIndices = {0, 1, 2, 0, 2, 3};
@@ -34,7 +34,7 @@ struct Sprite
     float g = 1.0f;
     float b = 1.0f;
     float a = 1.0f;
-    float blend = 0.0f;
+    float tint = 0.0f;
 };
 
 class SpriteBatch
@@ -88,10 +88,11 @@ class SpriteBatch
                 sprite.texX * inverseTextureWidth + spriteVertices[i + 3] * sprite.texWidth * inverseTextureWidth;
             vertices[vertexI + i + 4] =
                 sprite.texY * inverseTextureHeight + spriteVertices[i + 4] * sprite.texHeight * inverseTextureHeight;
-            vertices[vertexI + i + 5] = sprite.r * sprite.a;
-            vertices[vertexI + i + 6] = sprite.g * sprite.a;
-            vertices[vertexI + i + 7] = sprite.b * sprite.a;
-            vertices[vertexI + i + 8] = sprite.blend * sprite.a;
+            vertices[vertexI + i + 5] = sprite.r;
+            vertices[vertexI + i + 6] = sprite.g;
+            vertices[vertexI + i + 7] = sprite.b;
+            vertices[vertexI + i + 8] = sprite.a;
+            vertices[vertexI + i + 9] = sprite.tint;
         }
 
         for (size_t i = 0; i < spriteIndices.size(); i++)

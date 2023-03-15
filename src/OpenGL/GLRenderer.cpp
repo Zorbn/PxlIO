@@ -8,22 +8,23 @@ const char *vertexShaderSource = "#version 300 es\n"
 
                                  "precision highp float;\n"
 
-                                 "layout (location = 0) in vec3 aVertexPos;\n"
-                                 "layout (location = 1) in vec2 aTexCoord;\n"
-                                 "layout (location = 2) in vec4 aColor;\n"
+                                 "layout (location = 0) in vec3 inPosition;\n"
+                                 "layout (location = 1) in vec2 inTexCoord;\n"
+                                 "layout (location = 2) in vec4 inColor;\n"
+                                 "layout (location = 3) in float inTint;\n"
 
-                                 "out vec2 TexCoord;\n"
-                                 "out vec4 Color;\n"
+                                 "out vec2 fragTexCoord;\n"
+                                 "out vec4 fragColor;\n"
+                                 "out float fragTint;\n"
 
-                                 "uniform mat4 Proj;\n"
+                                 "uniform mat4 proj;\n"
 
                                  "void main()\n"
                                  "{\n"
-                                 "   vec4 pos = Proj * vec4(aVertexPos, 1.0);\n"
-
-                                 "   gl_Position = pos;\n"
-                                 "	TexCoord = aTexCoord;\n"
-                                 "	Color = aColor;\n"
+                                 "    gl_Position = proj * vec4(inPosition, 1.0);\n"
+                                 "	  fragTexCoord = inTexCoord;\n"
+                                 "    fragColor = inColor;\n"
+                                 "    fragTint = inTint;\n"
                                  "}\0";
 
 const char *fragmentShaderSource = "#version 300 es\n"
@@ -31,43 +32,44 @@ const char *fragmentShaderSource = "#version 300 es\n"
                                    "precision highp float;\n"
                                    "precision mediump sampler2D;\n"
 
-                                   "out vec4 FragColor;\n"
+                                   "out vec4 outColor;\n"
 
-                                   "in vec2 TexCoord;\n"
-                                   "in vec4 Color;\n"
+                                   "in vec2 fragTexCoord;\n"
+                                   "in vec4 fragColor;\n"
+                                   "in float fragTint;\n"
 
-                                   "uniform sampler2D Texture;\n"
+                                   "uniform sampler2D texSampler;\n"
 
                                    "void main()\n"
                                    "{\n"
-                                   "   vec4 texColor = texture(Texture, TexCoord);\n"
-                                   "	texColor = vec4(mix(texColor.rgb, Color.rgb, Color.a), texColor.a);\n"
+                                   "    vec4 texColor = texture(texSampler, fragTexCoord);\n"
+                                   "    texColor = vec4(mix(texColor.rgb, fragColor.rgb, fragTint), texColor.a * fragColor.a);\n"
 
-                                   "   // Don't render transparent pixels.\n"
-                                   "   if (texColor.a == 0.0)\n"
-                                   "   {\n"
-                                   "       discard;\n"
-                                   "   }\n"
+                                   "    // Don't render transparent pixels.\n"
+                                   "    if (texColor.a == 0.0)\n"
+                                   "    {\n"
+                                   "        discard;\n"
+                                   "    }\n"
 
-                                   "   FragColor = texColor;\n"
+                                   "    outColor = texColor;\n"
                                    "}\0";
 
 const char *screenVertexShaderSource = "#version 300 es\n"
 
                                        "precision highp float;\n"
 
-                                       "layout (location = 0) in vec3 aPos;\n"
+                                       "layout (location = 0) in vec3 inPosition;\n"
 
-                                       "out vec2 TexCoord;\n"
+                                       "out vec2 fragTexCoord;\n"
 
-                                       "uniform mat4 Proj;"
-                                       "uniform vec2 ViewSize;"
-                                       "uniform vec2 Offset;"
+                                       "uniform mat4 proj;"
+                                       "uniform vec2 viewSize;"
+                                       "uniform vec2 offset;"
 
                                        "void main()\n"
                                        "{\n"
-                                       "	gl_Position = Proj * vec4(Offset + aPos.xy * ViewSize, 0.0, 1.0);\n"
-                                       "	TexCoord = aPos.xy;\n"
+                                       "    gl_Position = proj * vec4(offset + inPosition.xy * viewSize, 0.0, 1.0);\n"
+                                       "    fragTexCoord = inPosition.xy;\n"
                                        "}\0";
 
 const char *screenFragmentShaderSource = "#version 300 es\n"
@@ -75,16 +77,16 @@ const char *screenFragmentShaderSource = "#version 300 es\n"
                                          "precision highp float;\n"
                                          "precision mediump sampler2D;\n"
 
-                                         "out vec4 FragColor;\n"
+                                         "out vec4 outColor;\n"
 
-                                         "in vec2 TexCoord;\n"
+                                         "in vec2 fragTexCoord;\n"
 
-                                         "uniform sampler2D Tex;\n"
+                                         "uniform sampler2D texSampler;\n"
 
                                          "void main()\n"
                                          "{\n"
-                                         "	vec4 texColor = texture(Tex, TexCoord);\n"
-                                         "	FragColor = texColor;\n"
+                                         "    vec4 texColor = texture(texSampler, fragTexCoord);\n"
+                                         "    outColor = texColor;\n"
                                          "}\0";
 
 const int32_t maxShaderErrorLen = 512;
@@ -157,7 +159,7 @@ GLRenderer::GLRenderer(const std::string &windowName, int32_t windowWidth, int32
     CheckShaderLinkError(shaderProgram);
 
     glUseProgram(shaderProgram);
-    projLocation = glGetUniformLocation(shaderProgram, "Proj");
+    projLocation = glGetUniformLocation(shaderProgram, "proj");
 
     // Screen shader:
     screenVertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -204,11 +206,11 @@ GLRenderer::GLRenderer(const std::string &windowName, int32_t windowWidth, int32
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, screenDepth);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, screenTexture, 0);
 
-    screenTexLocation = glGetUniformLocation(screenShaderProgram, "Tex");
+    screenTexLocation = glGetUniformLocation(screenShaderProgram, "texSampler");
     glUniform1i(screenTexLocation, 0);
-    screenProjLocation = glGetUniformLocation(screenShaderProgram, "Proj");
-    screenViewSizeLocation = glGetUniformLocation(screenShaderProgram, "ViewSize");
-    screenOffsetLocation = glGetUniformLocation(screenShaderProgram, "Offset");
+    screenProjLocation = glGetUniformLocation(screenShaderProgram, "proj");
+    screenViewSizeLocation = glGetUniformLocation(screenShaderProgram, "viewSize");
+    screenOffsetLocation = glGetUniformLocation(screenShaderProgram, "offset");
 
     // Sprite model:
     uint32_t spriteVao;
@@ -226,11 +228,13 @@ GLRenderer::GLRenderer(const std::string &windowName, int32_t windowWidth, int32
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, spriteIndices.size() * sizeof(uint32_t), &spriteIndices[0], GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (void *)(3 * sizeof(float)));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 9 * sizeof(float), (void *)(5 * sizeof(float)));
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (void *)(5 * sizeof(float)));
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, 10 * sizeof(float), (void *)(9 * sizeof(float)));
 
     spriteModel = GLModel{
         spriteVao,

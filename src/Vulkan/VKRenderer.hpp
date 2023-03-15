@@ -44,6 +44,7 @@ struct VertexData
     glm::vec3 pos;
     glm::vec2 texCoord;
     glm::vec4 color;
+    float tint;
 
     static VkVertexInputBindingDescription GetBindingDescription()
     {
@@ -55,9 +56,9 @@ struct VertexData
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
+    static std::array<VkVertexInputAttributeDescription, 4> GetAttributeDescriptions()
     {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions{};
+        std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions{};
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
@@ -73,6 +74,11 @@ struct VertexData
         attributeDescriptions[2].location = 2;
         attributeDescriptions[2].format = VK_FORMAT_R32G32B32A32_SFLOAT;
         attributeDescriptions[2].offset = offsetof(VertexData, color);
+
+        attributeDescriptions[3].binding = 0;
+        attributeDescriptions[3].location = 3;
+        attributeDescriptions[3].format = VK_FORMAT_R32_SFLOAT;
+        attributeDescriptions[3].offset = offsetof(VertexData, tint);
 
         return attributeDescriptions;
     }
@@ -111,10 +117,10 @@ struct ScreenUniformBufferData
 };
 
 const std::vector<VertexData> screenVertices = {
-    {{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-    {{1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-    {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
-    {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}},
+    {{0.0f, 0.0f, 0.0f}, {0.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, 0.0f},
+    {{1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, 0.0f},
+    {{1.0f, 1.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, 0.0f},
+    {{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}, {1.0f, 1.0f, 1.0f, 1.0f}, 0.0f},
 };
 
 const std::vector<uint32_t> screenIndices = {0, 1, 2, 0, 2, 3};

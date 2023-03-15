@@ -25,7 +25,7 @@ int main(int argc, char **argv)
         auto currentTime = std::chrono::high_resolution_clock::now();
         auto deltaTime = static_cast<float>((currentTime - lastTime).count()) * 0.000001f;
         lastTime = currentTime;
-        std::cout << deltaTime << "\n";
+        // std::cout << deltaTime << "\n";
 
         SDL_Event event;
         while (SDL_PollEvent(&event))
@@ -60,7 +60,6 @@ int main(int argc, char **argv)
 
         auto sprite = Sprite{};
         sprite.width = sprite.height = sprite.texWidth = sprite.texHeight = 64;
-        sprite.a = 0.5f;
 
         for (int32_t i = 0; i < 50'000; i++)
         {
