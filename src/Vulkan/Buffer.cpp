@@ -4,7 +4,7 @@ Buffer::Buffer()
 {
 }
 
-Buffer::Buffer(VmaAllocator allocator, vk::DeviceSize byteSize, VkBufferUsageFlags usage, bool cpuAccessible)
+Buffer::Buffer(VmaAllocator allocator, VkDeviceSize byteSize, VkBufferUsageFlags usage, bool cpuAccessible)
     : byteSize(byteSize)
 {
     VkBufferCreateInfo bufferInfo{};

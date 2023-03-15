@@ -3,6 +3,7 @@
 #include <vk_mem_alloc.h>
 #include <vulkan/vulkan.h>
 
+#include <algorithm>
 #include <array>
 #include <limits>
 #include <stdexcept>
