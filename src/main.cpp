@@ -7,7 +7,7 @@
 
 int main(int argc, char **argv)
 {
-    std::shared_ptr<Renderer> rend = PxlRnd::Create("PxlRnd", 640, 480, 320, 240, true);
+    std::shared_ptr<Renderer> rend = PxlRnd::Create("PxlRnd", 640, 480, 320, 240);
 
     SDL_Window *window = rend->GetWindowPtr();
 
@@ -57,8 +57,13 @@ int main(int argc, char **argv)
 
         rend->BeginDrawing();
         spriteBatch.Clear();
-        for (int32_t i = 0; i < 50'000; i++) {
-            spriteBatch.Add(0, 0, 0, 64, 64, 0, 0, 64, 64);
+
+        auto sprite = Sprite{};
+        sprite.width = sprite.height = sprite.texWidth = sprite.texHeight = 64;
+
+        for (int32_t i = 0; i < 50'000; i++)
+        {
+            spriteBatch.Add(0, 0, 0, sprite);
         }
         rend->DrawSpriteBatch(spriteBatch);
 

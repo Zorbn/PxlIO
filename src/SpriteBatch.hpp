@@ -19,6 +19,24 @@ const std::vector<float> spriteVertices = {
 
 const std::vector<uint32_t> spriteIndices = {0, 1, 2, 0, 2, 3};
 
+struct Sprite
+{
+    float width = 0.0f;
+    float height = 0.0f;
+    float texX = 0.0f;
+    float texY = 0.0f;
+    float texWidth = 0.0f;
+    float texHeight = 0.0f;
+    float originX = 0.0f;
+    float originY = 0.0f;
+    float rotation = 0.0f;
+    float r = 1.0f;
+    float g = 1.0f;
+    float b = 1.0f;
+    float a = 1.0f;
+    float blend = 0.0f;
+};
+
 class SpriteBatch
 {
 public:
@@ -37,11 +55,7 @@ public:
         spriteCount = 0;
     }
 
-    void Add(float x, float y, float depth, float width,
-             float height, float texX, float texY,
-             float texWidth, float texHeight,
-             float originX = 0.0f, float originY = 0.0f, float rotation = 0.0f,
-             float r = 1.0f, float g = 1.0f, float b = 1.0f, float a = 0.0f)
+    void Add(float x, float y, float depth, Sprite sprite)
     {
         if (spriteCount >= maxSprites)
         {
@@ -58,25 +72,25 @@ public:
             float vertexX = spriteVertices[i];
             float vertexY = spriteVertices[i + 1];
 
-            if (rotation != 0.0f)
+            if (sprite.rotation != 0.0f)
             {
-                auto rotatedVerts = glm::vec3(vertexX - originX, vertexY - originY, 0.0f) *
-                                    glm::rotate(glm::mat3(1.0f), glm::radians(rotation));
-                vertexX = rotatedVerts.x + originX;
-                vertexY = rotatedVerts.y + originY;
+                auto rotatedVerts = glm::vec3(vertexX - sprite.originX, vertexY - sprite.originY, 0.0f) *
+                                    glm::rotate(glm::mat3(1.0f), glm::radians(sprite.rotation));
+                vertexX = rotatedVerts.x + sprite.originX;
+                vertexY = rotatedVerts.y + sprite.originY;
             }
 
-            vertices[vertexI + i] = x + vertexX * width;
-            vertices[vertexI + i + 1] = y + vertexY * height;
+            vertices[vertexI + i] = x + vertexX * sprite.width;
+            vertices[vertexI + i + 1] = y + vertexY * sprite.height;
             vertices[vertexI + i + 2] = depth + spriteVertices[i + 2];
-            vertices[vertexI + i + 3] = texX * inverseTextureWidth +
-                                        spriteVertices[i + 3] * texWidth * inverseTextureWidth;
-            vertices[vertexI + i + 4] = texY * inverseTextureHeight +
-                                        spriteVertices[i + 4] * texHeight * inverseTextureHeight;
-            vertices[vertexI + i + 5] = r;
-            vertices[vertexI + i + 6] = g;
-            vertices[vertexI + i + 7] = b;
-            vertices[vertexI + i + 8] = a;
+            vertices[vertexI + i + 3] = sprite.texX * inverseTextureWidth +
+                                        spriteVertices[i + 3] * sprite.texWidth * inverseTextureWidth;
+            vertices[vertexI + i + 4] = sprite.texY * inverseTextureHeight +
+                                        spriteVertices[i + 4] * sprite.texHeight * inverseTextureHeight;
+            vertices[vertexI + i + 5] = sprite.r * sprite.a;
+            vertices[vertexI + i + 6] = sprite.g * sprite.a;
+            vertices[vertexI + i + 7] = sprite.b * sprite.a;
+            vertices[vertexI + i + 8] = sprite.blend * sprite.a;
         }
 
         for (size_t i = 0; i < spriteIndices.size(); i++)
