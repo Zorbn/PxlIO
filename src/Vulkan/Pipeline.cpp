@@ -94,7 +94,7 @@ std::vector<char> Pipeline::ReadFile(const std::string &filename)
 
     if (!file.is_open())
     {
-        RUNTIME_ERROR("Failed to open file!");
+        RUNTIME_ERROR(std::string("Failed to open file: ") + filename);
     }
 
     size_t fileSize = (size_t)file.tellg();
