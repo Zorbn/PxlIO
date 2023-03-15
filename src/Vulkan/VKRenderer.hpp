@@ -22,8 +22,8 @@
 #include <optional>
 #include <set>
 #include <stdexcept>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 #include "Buffer.hpp"
 #include "Commands.hpp"
@@ -33,8 +33,7 @@
 #include "Swapchain.hpp"
 #include "UniformBuffer.hpp"
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
-                                      const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
                                       const VkAllocationCallbacks *pAllocator,
                                       VkDebugUtilsMessengerEXT *pDebugMessenger);
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
@@ -152,9 +151,9 @@ struct VKSpriteBatchData
 
 class VKRenderer : public Renderer
 {
-public:
-    VKRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight,
-               int32_t viewWidth, int32_t viewHeight, bool enableVsync = true);
+  public:
+    VKRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight, int32_t viewWidth,
+               int32_t viewHeight, bool enableVsync = true);
     ~VKRenderer();
 
     void ResizeWindow(int width, int height) override;
@@ -165,12 +164,12 @@ public:
     void BeginDrawing() override;
     void EndDrawing() override;
 
-    SpriteBatch CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites,
-        bool smooth = false, bool enableBlending = false) override;
+    SpriteBatch CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites, bool smooth = false,
+                                  bool enableBlending = false) override;
     void DrawSpriteBatch(SpriteBatch &spriteBatch) override;
     void DestroySpriteBatch(SpriteBatch &spriteBatch) override;
 
-private:
+  private:
     SDL_Window *window = nullptr;
     int32_t windowWidth = 0;
     int32_t windowHeight = 0;
@@ -250,13 +249,12 @@ private:
     std::vector<const char *> GetRequiredExtensions();
     bool CheckValidationLayerSupport();
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL
-    DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-                  VkDebugUtilsMessageTypeFlagsEXT messageType,
-                  const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData);
+    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                        VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                                        const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
+                                                        void *userData);
 
-    static glm::mat4 VkOrtho(float left, float right, float bottom, float top,
-                      float near, float far);
+    static glm::mat4 VkOrtho(float left, float right, float bottom, float top, float near, float far);
 
     static VkClearColorValue ConvertClearColor(float r, float g, float b, VkFormat format);
 };

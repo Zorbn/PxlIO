@@ -1,15 +1,21 @@
 #include "Image.hpp"
 
-Image::Image() {}
+Image::Image()
+{
+}
 
-Image::Image(VkImage image, VkFormat format) : image(image), format(format) {}
+Image::Image(VkImage image, VkFormat format) : image(image), format(format)
+{
+}
 
 Image::Image(VkImage image, VmaAllocation allocation, VkFormat format)
-    : image(image), allocation(allocation), format(format) {}
+    : image(image), allocation(allocation), format(format)
+{
+}
 
-Image::Image(VmaAllocator allocator, uint32_t width, uint32_t height, VkFormat format,
-             VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties,
-             uint32_t mipmapLevels, uint32_t layers, VkSampleCountFlagBits samples)
+Image::Image(VmaAllocator allocator, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+             VkImageUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t mipmapLevels, uint32_t layers,
+             VkSampleCountFlagBits samples)
     : format(format)
 {
 
@@ -72,9 +78,8 @@ void Image::GenerateMipmaps(Commands &commands, VkQueue graphicsQueue, VkDevice 
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 
-        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                             VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1,
-                             &barrier);
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
+                             nullptr, 0, nullptr, 1, &barrier);
 
         VkImageBlit blit{};
         blit.srcOffsets[0] = {0, 0, 0};
@@ -84,8 +89,7 @@ void Image::GenerateMipmaps(Commands &commands, VkQueue graphicsQueue, VkDevice 
         blit.srcSubresource.baseArrayLayer = 0;
         blit.srcSubresource.layerCount = layerCount;
         blit.dstOffsets[0] = {0, 0, 0};
-        blit.dstOffsets[1] = {mipmapWidth > 1 ? mipmapWidth / 2 : 1,
-                              mipmapHeight > 1 ? mipmapHeight / 2 : 1, 1};
+        blit.dstOffsets[1] = {mipmapWidth > 1 ? mipmapWidth / 2 : 1, mipmapHeight > 1 ? mipmapHeight / 2 : 1, 1};
         blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         blit.dstSubresource.mipLevel = i;
         blit.dstSubresource.baseArrayLayer = 0;
@@ -99,9 +103,8 @@ void Image::GenerateMipmaps(Commands &commands, VkQueue graphicsQueue, VkDevice 
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1,
-                             &barrier);
+        vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0,
+                             nullptr, 0, nullptr, 1, &barrier);
 
         if (mipmapWidth > 1)
         {
@@ -120,15 +123,13 @@ void Image::GenerateMipmaps(Commands &commands, VkQueue graphicsQueue, VkDevice 
     barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
     barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-    vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT,
-                         VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1,
-                         &barrier);
+    vkCmdPipelineBarrier(commandBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0,
+                         nullptr, 0, nullptr, 1, &barrier);
 
     commands.EndSingleTime(commandBuffer, graphicsQueue, device);
 }
 
-Buffer Image::LoadImage(const std::string &imagePath, VmaAllocator allocator, int32_t &width,
-                        int32_t &height)
+Buffer Image::LoadImage(const std::string &imagePath, VmaAllocator allocator, int32_t &width, int32_t &height)
 {
     SDL_Surface *surface = LoadSurface(imagePath);
 
@@ -146,8 +147,8 @@ Buffer Image::LoadImage(const std::string &imagePath, VmaAllocator allocator, in
     return stagingBuffer;
 }
 
-Image Image::CreateTexture(const std::string &image, VmaAllocator allocator, Commands &commands,
-                           VkQueue graphicsQueue, VkDevice device, bool enableMipmaps)
+Image Image::CreateTexture(const std::string &image, VmaAllocator allocator, Commands &commands, VkQueue graphicsQueue,
+                           VkDevice device, bool enableMipmaps)
 {
     int32_t texWidth, texHeight;
     Buffer stagingBuffer = LoadImage(image, allocator, texWidth, texHeight);
@@ -155,12 +156,11 @@ Image Image::CreateTexture(const std::string &image, VmaAllocator allocator, Com
 
     Image textureImage =
         Image(allocator, texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
-              VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                  VK_IMAGE_USAGE_SAMPLED_BIT,
+              VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mipMapLevels);
 
-    textureImage.TransitionImageLayout(commands, VK_IMAGE_LAYOUT_UNDEFINED,
-                                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, graphicsQueue, device);
+    textureImage.TransitionImageLayout(commands, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                       graphicsQueue, device);
     textureImage.CopyFromBuffer(stagingBuffer, commands, graphicsQueue, device);
 
     stagingBuffer.Destroy(allocator);
@@ -170,10 +170,9 @@ Image Image::CreateTexture(const std::string &image, VmaAllocator allocator, Com
     return textureImage;
 }
 
-Image Image::CreateTextureArray(const std::string &image, VmaAllocator allocator,
-                                Commands &commands, VkQueue graphicsQueue, VkDevice device,
-                                bool enableMipmaps, uint32_t width, uint32_t height,
-                                uint32_t layers)
+Image Image::CreateTextureArray(const std::string &image, VmaAllocator allocator, Commands &commands,
+                                VkQueue graphicsQueue, VkDevice device, bool enableMipmaps, uint32_t width,
+                                uint32_t height, uint32_t layers)
 {
     int32_t texWidth, texHeight;
     Buffer stagingBuffer = LoadImage(image, allocator, texWidth, texHeight);
@@ -181,14 +180,12 @@ Image Image::CreateTextureArray(const std::string &image, VmaAllocator allocator
 
     Image textureImage =
         Image(allocator, width, height, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL,
-              VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                  VK_IMAGE_USAGE_SAMPLED_BIT,
+              VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
               VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, mipMapLevels, layers);
 
-    textureImage.TransitionImageLayout(commands, VK_IMAGE_LAYOUT_UNDEFINED,
-                                       VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, graphicsQueue, device);
-    textureImage.CopyFromBuffer(stagingBuffer, commands, graphicsQueue, device, texWidth,
-                                texHeight);
+    textureImage.TransitionImageLayout(commands, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                                       graphicsQueue, device);
+    textureImage.CopyFromBuffer(stagingBuffer, commands, graphicsQueue, device, texWidth, texHeight);
 
     stagingBuffer.Destroy(allocator);
 
@@ -202,8 +199,8 @@ VkImageView Image::CreateTextureView(VkDevice device)
     return CreateView(VK_IMAGE_ASPECT_COLOR_BIT, device);
 }
 
-VkSampler Image::CreateTextureSampler(VkPhysicalDevice physicalDevice, VkDevice device,
-                                      VkFilter minFilter, VkFilter magFilter)
+VkSampler Image::CreateTextureSampler(VkPhysicalDevice physicalDevice, VkDevice device, VkFilter minFilter,
+                                      VkFilter magFilter)
 {
     VkPhysicalDeviceProperties properties{};
     vkGetPhysicalDeviceProperties(physicalDevice, &properties);
@@ -257,8 +254,8 @@ VkImageView Image::CreateView(VkImageAspectFlags aspectFlags, VkDevice device)
     return imageView;
 }
 
-void Image::TransitionImageLayout(Commands &commands, VkImageLayout oldLayout,
-                                  VkImageLayout newLayout, VkQueue graphicsQueue, VkDevice device)
+void Image::TransitionImageLayout(Commands &commands, VkImageLayout oldLayout, VkImageLayout newLayout,
+                                  VkQueue graphicsQueue, VkDevice device)
 {
     VkCommandBuffer commandBuffer = commands.BeginSingleTime(graphicsQueue, device);
 
@@ -278,8 +275,7 @@ void Image::TransitionImageLayout(Commands &commands, VkImageLayout oldLayout,
     VkPipelineStageFlags sourceStage;
     VkPipelineStageFlags destinationStage;
 
-    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-        newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
     {
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -287,8 +283,7 @@ void Image::TransitionImageLayout(Commands &commands, VkImageLayout oldLayout,
         sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
-    else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
-             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
     {
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -296,8 +291,7 @@ void Image::TransitionImageLayout(Commands &commands, VkImageLayout oldLayout,
         sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     }
-    else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED &&
-             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
     {
         barrier.srcAccessMask = VK_ACCESS_HOST_WRITE_BIT | VK_ACCESS_TRANSFER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
@@ -310,14 +304,13 @@ void Image::TransitionImageLayout(Commands &commands, VkImageLayout oldLayout,
         RUNTIME_ERROR("Unsupported layout transition!");
     }
 
-    vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1,
-                         &barrier);
+    vkCmdPipelineBarrier(commandBuffer, sourceStage, destinationStage, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
     commands.EndSingleTime(commandBuffer, graphicsQueue, device);
 }
 
-void Image::CopyFromBuffer(Buffer &src, Commands &commands, VkQueue graphicsQueue, VkDevice device,
-                           uint32_t fullWidth, uint32_t fullHeight)
+void Image::CopyFromBuffer(Buffer &src, Commands &commands, VkQueue graphicsQueue, VkDevice device, uint32_t fullWidth,
+                           uint32_t fullHeight)
 {
     if (fullWidth == 0)
     {
@@ -352,8 +345,7 @@ void Image::CopyFromBuffer(Buffer &src, Commands &commands, VkQueue graphicsQueu
         regions.push_back(region);
     }
 
-    vkCmdCopyBufferToImage(commandBuffer, src.GetBuffer(), image,
-                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+    vkCmdCopyBufferToImage(commandBuffer, src.GetBuffer(), image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                            static_cast<uint32_t>(regions.size()), regions.data());
 
     commands.EndSingleTime(commandBuffer, graphicsQueue, device);
@@ -364,8 +356,17 @@ uint32_t Image::CalcMipmapLevels(int32_t texWidth, int32_t texHeight)
     return static_cast<uint32_t>(std::floor(std::log2(std::max(texWidth, texHeight)))) + 1;
 }
 
-void Image::Destroy(VmaAllocator allocator) { vmaDestroyImage(allocator, image, allocation); }
+void Image::Destroy(VmaAllocator allocator)
+{
+    vmaDestroyImage(allocator, image, allocation);
+}
 
-uint32_t Image::GetWidth() const { return width; }
+uint32_t Image::GetWidth() const
+{
+    return width;
+}
 
-uint32_t Image::GetHeight() const { return height; }
+uint32_t Image::GetHeight() const
+{
+    return height;
+}

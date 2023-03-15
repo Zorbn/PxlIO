@@ -3,11 +3,9 @@
 
 void RenderPass::CreateCustom(
     VkDevice device, Swapchain &swapchain, uint32_t width, uint32_t height,
-    std::function<VkRenderPass()> setupRenderPass,
-    std::function<void(const VkExtent2D &extent)> recreateCallback,
+    std::function<VkRenderPass()> setupRenderPass, std::function<void(const VkExtent2D &extent)> recreateCallback,
     std::function<void()> cleanupCallback,
-    std::function<void(std::vector<VkImageView> &attachments, VkImageView imageView)>
-        setupFramebuffer)
+    std::function<void(std::vector<VkImageView> &attachments, VkImageView imageView)> setupFramebuffer)
 {
 
     imageFormat = swapchain.GetImageFormat();
@@ -26,11 +24,10 @@ void RenderPass::CreateCustom(
     CreateFramebuffers(device, width, height);
 }
 
-void RenderPass::Create(VkPhysicalDevice physicalDevice, VkDevice device, VmaAllocator allocator,
-                        Swapchain &swapchain, bool enableDepth, bool enableMsaa)
+void RenderPass::Create(VkPhysicalDevice physicalDevice, VkDevice device, VmaAllocator allocator, Swapchain &swapchain,
+                        bool enableDepth, bool enableMsaa)
 {
-    std::function<VkRenderPass()> setupRenderPass = [&]
-    {
+    std::function<VkRenderPass()> setupRenderPass = [&] {
         depthEnabled = enableDepth;
         msaaSamples = enableMsaa ? GetMaxUsableSamples(physicalDevice) : VK_SAMPLE_COUNT_1_BIT;
         msaaEnabled = msaaSamples != VK_SAMPLE_COUNT_1_BIT;
@@ -43,8 +40,8 @@ void RenderPass::Create(VkPhysicalDevice physicalDevice, VkDevice device, VmaAll
         colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
         colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
         colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = msaaEnabled ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
-                                                  : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        colorAttachment.finalLayout =
+            msaaEnabled ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentDescription depthAttachment{};
         depthAttachment.format = FindDepthFormat(physicalDevice);
@@ -96,13 +93,12 @@ void RenderPass::Create(VkPhysicalDevice physicalDevice, VkDevice device, VmaAll
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
-        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                                  VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.srcStageMask =
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.srcAccessMask = 0;
-        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT |
-                                  VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        dependency.dstAccessMask =
-            VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        dependency.dstStageMask =
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
         std::vector<VkAttachmentDescription> attachments = {colorAttachment, depthAttachment};
 
@@ -130,14 +126,12 @@ void RenderPass::Create(VkPhysicalDevice physicalDevice, VkDevice device, VmaAll
         return renderPass;
     };
 
-    std::function<void(const VkExtent2D &)> recreateCallback = [=](const VkExtent2D &extent)
-    {
+    std::function<void(const VkExtent2D &)> recreateCallback = [=](const VkExtent2D &extent) {
         CreateColorResources(allocator, physicalDevice, device, extent);
         CreateDepthResources(allocator, physicalDevice, device, extent);
     };
 
-    std::function<void()> cleanupCallback = [=]
-    {
+    std::function<void()> cleanupCallback = [=] {
         vkDestroyImageView(device, depthImageView, nullptr);
         depthImage.Destroy(allocator);
         vkDestroyImageView(device, colorImageView, nullptr);
@@ -145,28 +139,27 @@ void RenderPass::Create(VkPhysicalDevice physicalDevice, VkDevice device, VmaAll
     };
 
     std::function<void(std::vector<VkImageView> &, VkImageView)> setupFramebuffer =
-        [&](std::vector<VkImageView> &attachments, VkImageView imageView)
-    {
-        if (msaaEnabled)
-        {
-            attachments.push_back(colorImageView);
-        }
-        else
-        {
-            attachments.push_back(imageView);
-        }
+        [&](std::vector<VkImageView> &attachments, VkImageView imageView) {
+            if (msaaEnabled)
+            {
+                attachments.push_back(colorImageView);
+            }
+            else
+            {
+                attachments.push_back(imageView);
+            }
 
-        attachments.push_back(depthImageView);
+            attachments.push_back(depthImageView);
 
-        if (msaaEnabled)
-        {
-            attachments.push_back(imageView);
-        }
-    };
+            if (msaaEnabled)
+            {
+                attachments.push_back(imageView);
+            }
+        };
 
     const VkExtent2D &extent = swapchain.GetExtent();
-    CreateCustom(device, swapchain, extent.width, extent.height, setupRenderPass,
-                 recreateCallback, cleanupCallback, setupFramebuffer);
+    CreateCustom(device, swapchain, extent.width, extent.height, setupRenderPass, recreateCallback, cleanupCallback,
+                 setupFramebuffer);
 }
 
 void RenderPass::CreateImages(VkDevice device, Swapchain &swapchain)
@@ -187,8 +180,7 @@ void RenderPass::CreateImages(VkDevice device, Swapchain &swapchain)
     }
 }
 
-void RenderPass::Begin(const uint32_t imageIndex, VkCommandBuffer commandBuffer,
-                       uint32_t width, uint32_t height,
+void RenderPass::Begin(const uint32_t imageIndex, VkCommandBuffer commandBuffer, uint32_t width, uint32_t height,
                        const std::vector<VkClearValue> &clearValues)
 {
     VkExtent2D extent = {width, height};
@@ -220,13 +212,25 @@ void RenderPass::Begin(const uint32_t imageIndex, VkCommandBuffer commandBuffer,
     vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 }
 
-void RenderPass::End(VkCommandBuffer commandBuffer) { vkCmdEndRenderPass(commandBuffer); }
+void RenderPass::End(VkCommandBuffer commandBuffer)
+{
+    vkCmdEndRenderPass(commandBuffer);
+}
 
-const VkRenderPass &RenderPass::GetRenderPass() { return renderPass; }
+const VkRenderPass &RenderPass::GetRenderPass()
+{
+    return renderPass;
+}
 
-const VkSampleCountFlagBits RenderPass::GetMsaaSamples() { return msaaSamples; }
+const VkSampleCountFlagBits RenderPass::GetMsaaSamples()
+{
+    return msaaSamples;
+}
 
-const bool RenderPass::GetMsaaEnabled() { return msaaEnabled; }
+const bool RenderPass::GetMsaaEnabled()
+{
+    return msaaEnabled;
+}
 
 void RenderPass::CreateImageViews(VkDevice device)
 {
@@ -256,32 +260,30 @@ void RenderPass::CreateFramebuffers(VkDevice device, uint32_t width, uint32_t he
         framebufferInfo.height = height;
         framebufferInfo.layers = 1;
 
-        if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffers[i]) !=
-            VK_SUCCESS)
+        if (vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffers[i]) != VK_SUCCESS)
         {
             RUNTIME_ERROR("Failed to create framebuffer!");
         }
     }
 }
 
-void RenderPass::CreateDepthResources(VmaAllocator allocator, VkPhysicalDevice physicalDevice,
-                                      VkDevice device, VkExtent2D extent)
+void RenderPass::CreateDepthResources(VmaAllocator allocator, VkPhysicalDevice physicalDevice, VkDevice device,
+                                      VkExtent2D extent)
 {
     VkFormat depthFormat = FindDepthFormat(physicalDevice);
 
-    depthImage = Image(allocator, extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
-                       VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 1, msaaSamples);
+    depthImage =
+        Image(allocator, extent.width, extent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 1, msaaSamples);
     depthImageView = depthImage.CreateView(VK_IMAGE_ASPECT_DEPTH_BIT, device);
 }
 
-void RenderPass::CreateColorResources(VmaAllocator allocator, VkPhysicalDevice physicalDevice,
-                                      VkDevice device, VkExtent2D extent)
+void RenderPass::CreateColorResources(VmaAllocator allocator, VkPhysicalDevice physicalDevice, VkDevice device,
+                                      VkExtent2D extent)
 {
-    colorImage =
-        Image(allocator, extent.width, extent.height, imageFormat, VK_IMAGE_TILING_OPTIMAL,
-              VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 1, msaaSamples);
+    colorImage = Image(allocator, extent.width, extent.height, imageFormat, VK_IMAGE_TILING_OPTIMAL,
+                       VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                       VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 1, 1, msaaSamples);
     colorImageView = colorImage.CreateView(VK_IMAGE_ASPECT_COLOR_BIT, device);
 }
 
@@ -298,8 +300,7 @@ void RenderPass::Recreate(VkPhysicalDevice physicalDevice, VkDevice device, VmaA
     CreateFramebuffers(device, width, height);
 }
 
-VkFormat RenderPass::FindSupportedFormat(VkPhysicalDevice physicalDevice,
-                                         const std::vector<VkFormat> &candidates,
+VkFormat RenderPass::FindSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat> &candidates,
                                          VkImageTiling tiling, VkFormatFeatureFlags features)
 {
     for (VkFormat format : candidates)
@@ -307,13 +308,11 @@ VkFormat RenderPass::FindSupportedFormat(VkPhysicalDevice physicalDevice,
         VkFormatProperties props;
         vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
 
-        if (tiling == VK_IMAGE_TILING_LINEAR &&
-            (props.linearTilingFeatures & features) == features)
+        if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features)
         {
             return format;
         }
-        else if (tiling == VK_IMAGE_TILING_OPTIMAL &&
-                 (props.optimalTilingFeatures & features) == features)
+        else if (tiling == VK_IMAGE_TILING_OPTIMAL && (props.optimalTilingFeatures & features) == features)
         {
             return format;
         }
@@ -324,10 +323,9 @@ VkFormat RenderPass::FindSupportedFormat(VkPhysicalDevice physicalDevice,
 
 VkFormat RenderPass::FindDepthFormat(VkPhysicalDevice physicalDevice)
 {
-    return FindSupportedFormat(
-        physicalDevice,
-        {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
-        VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+    return FindSupportedFormat(physicalDevice,
+                               {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
+                               VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
 
 void RenderPass::CleanupForRecreation(VmaAllocator allocator, VkDevice device)

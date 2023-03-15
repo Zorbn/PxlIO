@@ -1,9 +1,10 @@
 #include "Buffer.hpp"
 
-Buffer::Buffer() {}
+Buffer::Buffer()
+{
+}
 
-Buffer::Buffer(VmaAllocator allocator, vk::DeviceSize byteSize, VkBufferUsageFlags usage,
-               bool cpuAccessible)
+Buffer::Buffer(VmaAllocator allocator, vk::DeviceSize byteSize, VkBufferUsageFlags usage, bool cpuAccessible)
     : byteSize(byteSize)
 {
     VkBufferCreateInfo bufferInfo{};
@@ -16,19 +17,18 @@ Buffer::Buffer(VmaAllocator allocator, vk::DeviceSize byteSize, VkBufferUsageFla
     allocCreateInfo.usage = VMA_MEMORY_USAGE_AUTO;
     if (cpuAccessible)
     {
-        allocCreateInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
-                                VMA_ALLOCATION_CREATE_MAPPED_BIT;
+        allocCreateInfo.flags =
+            VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | VMA_ALLOCATION_CREATE_MAPPED_BIT;
     }
 
-    if (byteSize != 0 && vmaCreateBuffer(allocator, &bufferInfo, &allocCreateInfo, &buffer,
-                                         &allocation, &allocInfo) != VK_SUCCESS)
+    if (byteSize != 0 &&
+        vmaCreateBuffer(allocator, &bufferInfo, &allocCreateInfo, &buffer, &allocation, &allocInfo) != VK_SUCCESS)
     {
         RUNTIME_ERROR("Failed to create buffer!");
     }
 }
 
-void Buffer::CopyTo(VmaAllocator &allocator, VkQueue graphicsQueue, VkDevice device,
-                    Commands &commands, Buffer &dst)
+void Buffer::CopyTo(VmaAllocator &allocator, VkQueue graphicsQueue, VkDevice device, Commands &commands, Buffer &dst)
 {
     if (byteSize == 0 || dst.GetSize() == 0)
         return;
@@ -42,9 +42,15 @@ void Buffer::CopyTo(VmaAllocator &allocator, VkQueue graphicsQueue, VkDevice dev
     commands.EndSingleTime(commandBuffer, graphicsQueue, device);
 }
 
-const VkBuffer &Buffer::GetBuffer() { return buffer; }
+const VkBuffer &Buffer::GetBuffer()
+{
+    return buffer;
+}
 
-size_t Buffer::GetSize() { return byteSize; }
+size_t Buffer::GetSize()
+{
+    return byteSize;
+}
 
 void Buffer::Map(VmaAllocator allocator, void **data)
 {

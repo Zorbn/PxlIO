@@ -8,13 +8,13 @@
 #include <iostream>
 #include <vector>
 
+#include "../Error.hpp"
 #include "RenderPass.hpp"
 #include "Swapchain.hpp"
-#include "../Error.hpp"
 
 class Pipeline
 {
-public:
+  public:
     template <typename V, typename I>
     void CreateCustom(const std::string &vertShader, const std::string &fragShader, VkDevice device,
                       RenderPass &renderPass, bool enableTransparency,
@@ -47,13 +47,12 @@ public:
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 
-        std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {
-            V::GetBindingDescription(), I::GetBindingDescription()};
+        std::array<VkVertexInputBindingDescription, 2> bindingDescriptions = {V::GetBindingDescription(),
+                                                                              I::GetBindingDescription()};
         auto vertexAttributeDescriptions = V::GetAttributeDescriptions();
         auto instanceAttributeDescriptions = I::GetAttributeDescriptions();
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-        attributeDescriptions.reserve(vertexAttributeDescriptions.size() +
-                                      instanceAttributeDescriptions.size());
+        attributeDescriptions.reserve(vertexAttributeDescriptions.size() + instanceAttributeDescriptions.size());
 
         for (VkVertexInputAttributeDescription desc : vertexAttributeDescriptions)
         {
@@ -66,8 +65,7 @@ public:
         }
 
         vertexInputInfo.vertexBindingDescriptionCount = 2;
-        vertexInputInfo.vertexAttributeDescriptionCount =
-            static_cast<uint32_t>(attributeDescriptions.size());
+        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
         vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
@@ -105,8 +103,8 @@ public:
         depthStencil.stencilTestEnable = VK_FALSE;
 
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                                              VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.colorWriteMask =
+            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 
         if (enableTransparency)
         {
@@ -134,8 +132,7 @@ public:
         colorBlending.blendConstants[2] = 0.0f;
         colorBlending.blendConstants[3] = 0.0f;
 
-        std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT,
-                                                     VK_DYNAMIC_STATE_SCISSOR};
+        std::vector<VkDynamicState> dynamicStates = {VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR};
         VkPipelineDynamicStateCreateInfo dynamicState{};
         dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
         dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
@@ -146,8 +143,7 @@ public:
         pipelineLayoutInfo.setLayoutCount = 1;
         pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 
-        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
-            VK_SUCCESS)
+        if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
         {
             RUNTIME_ERROR("Failed to create pipeline layout!");
         }
@@ -169,8 +165,8 @@ public:
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr,
-                                      &graphicsPipeline) != VK_SUCCESS)
+        if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &graphicsPipeline) !=
+            VK_SUCCESS)
         {
             RUNTIME_ERROR("Failed to create graphics pipeline!");
         }
@@ -180,8 +176,8 @@ public:
     }
 
     template <typename V, typename I>
-    void Create(const std::string &vertShader, const std::string &fragShader, VkDevice device,
-                RenderPass &renderPass, bool enableTransparency)
+    void Create(const std::string &vertShader, const std::string &fragShader, VkDevice device, RenderPass &renderPass,
+                bool enableTransparency)
     {
         VkPipelineRasterizationStateCreateInfo rasterizer{};
         rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -189,12 +185,12 @@ public:
         rasterizer.rasterizerDiscardEnable = VK_FALSE;
         rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         rasterizer.lineWidth = 1.0f;
-        rasterizer.cullMode = VK_CULL_MODE_NONE; // Face culling is disabled to allow flipping sprites: VK_CULL_MODE_BACK_BIT
+        rasterizer.cullMode =
+            VK_CULL_MODE_NONE; // Face culling is disabled to allow flipping sprites: VK_CULL_MODE_BACK_BIT
         rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         rasterizer.depthBiasEnable = VK_FALSE;
 
-        CreateCustom<V, I>(vertShader, fragShader, device, renderPass, enableTransparency,
-                           rasterizer);
+        CreateCustom<V, I>(vertShader, fragShader, device, renderPass, enableTransparency, rasterizer);
     }
 
     template <typename V, typename I>
@@ -207,21 +203,18 @@ public:
         Create<V, I>(vertShader, fragShader, device, renderPass, transparencyEnabled);
     }
 
-    void CreateDescriptorSetLayout(
-        VkDevice device,
-        std::function<void(std::vector<VkDescriptorSetLayoutBinding> &)> setupBindings);
-    void CreateDescriptorPool(
-        const uint32_t maxFramesInFlight, VkDevice device,
-        std::function<void(std::vector<VkDescriptorPoolSize> &poolSizes)> setupPool);
+    void CreateDescriptorSetLayout(VkDevice device,
+                                   std::function<void(std::vector<VkDescriptorSetLayoutBinding> &)> setupBindings);
+    void CreateDescriptorPool(const uint32_t maxFramesInFlight, VkDevice device,
+                              std::function<void(std::vector<VkDescriptorPoolSize> &poolSizes)> setupPool);
     void CreateDescriptorSets(
         const uint32_t maxFramesInFlight, VkDevice device,
-        std::function<void(std::vector<VkWriteDescriptorSet> &, VkDescriptorSet, uint32_t)>
-            setupDescriptor);
+        std::function<void(std::vector<VkWriteDescriptorSet> &, VkDescriptorSet, uint32_t)> setupDescriptor);
     void Cleanup(VkDevice device);
 
     void Bind(VkCommandBuffer commandBuffer, int32_t currentFrame);
 
-private:
+  private:
     static VkShaderModule CreateShaderModule(const std::vector<char> &code, VkDevice device);
     static std::vector<char> ReadFile(const std::string &filename);
 
@@ -234,8 +227,7 @@ private:
 
     std::function<void(std::vector<VkDescriptorSetLayoutBinding> &)> setupBindings;
     std::function<void(std::vector<VkDescriptorPoolSize> &poolSizes)> setupPool;
-    std::function<void(std::vector<VkWriteDescriptorSet> &, VkDescriptorSet, uint32_t)>
-        setupDescriptor;
+    std::function<void(std::vector<VkWriteDescriptorSet> &, VkDescriptorSet, uint32_t)> setupDescriptor;
 
     std::string vertShader;
     std::string fragShader;

@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cinttypes>
-#include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
+#include <vector>
 
 const uint32_t verticesPerSprite = 4;
 const uint32_t valuesPerSpriteVertex = 9;
@@ -39,9 +39,10 @@ struct Sprite
 
 class SpriteBatch
 {
-public:
+  public:
     SpriteBatch(int32_t textureWidth, int32_t textureHeight, uint32_t maxSprites, bool enableBlending = false)
-        : id(nextId++), textureWidth(textureWidth), textureHeight(textureHeight), maxSprites(maxSprites), hasBlending(enableBlending)
+        : id(nextId++), textureWidth(textureWidth), textureHeight(textureHeight), maxSprites(maxSprites),
+          hasBlending(enableBlending)
     {
         inverseTextureWidth = 1.0f / textureWidth;
         inverseTextureHeight = 1.0f / textureHeight;
@@ -83,10 +84,10 @@ public:
             vertices[vertexI + i] = x + vertexX * sprite.width;
             vertices[vertexI + i + 1] = y + vertexY * sprite.height;
             vertices[vertexI + i + 2] = depth + spriteVertices[i + 2];
-            vertices[vertexI + i + 3] = sprite.texX * inverseTextureWidth +
-                                        spriteVertices[i + 3] * sprite.texWidth * inverseTextureWidth;
-            vertices[vertexI + i + 4] = sprite.texY * inverseTextureHeight +
-                                        spriteVertices[i + 4] * sprite.texHeight * inverseTextureHeight;
+            vertices[vertexI + i + 3] =
+                sprite.texX * inverseTextureWidth + spriteVertices[i + 3] * sprite.texWidth * inverseTextureWidth;
+            vertices[vertexI + i + 4] =
+                sprite.texY * inverseTextureHeight + spriteVertices[i + 4] * sprite.texHeight * inverseTextureHeight;
             vertices[vertexI + i + 5] = sprite.r * sprite.a;
             vertices[vertexI + i + 6] = sprite.g * sprite.a;
             vertices[vertexI + i + 7] = sprite.b * sprite.a;
@@ -124,7 +125,7 @@ public:
         return hasBlending;
     }
 
-private:
+  private:
     inline static uint32_t nextId;
     uint32_t id = 0;
     int32_t textureWidth = 0;

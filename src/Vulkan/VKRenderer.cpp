@@ -12,13 +12,11 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
-                                      const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
                                       const VkAllocationCallbacks *pAllocator,
                                       VkDebugUtilsMessengerEXT *pDebugMessenger)
 {
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-        instance, "vkCreateDebugUtilsMessengerEXT");
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     if (func != nullptr)
     {
         return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
@@ -32,17 +30,17 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger,
                                    const VkAllocationCallbacks *pAllocator)
 {
-    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-        instance, "vkDestroyDebugUtilsMessengerEXT");
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr)
     {
         func(instance, debugMessenger, pAllocator);
     }
 }
 
-VKRenderer::VKRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight,
-                       int32_t viewWidth, int32_t viewHeight, bool enableVsync)
-    : windowWidth(windowWidth), windowHeight(windowHeight), viewWidth(viewWidth), viewHeight(viewHeight), enableVsync(enableVsync)
+VKRenderer::VKRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight, int32_t viewWidth,
+                       int32_t viewHeight, bool enableVsync)
+    : windowWidth(windowWidth), windowHeight(windowHeight), viewWidth(viewWidth), viewHeight(viewHeight),
+      enableVsync(enableVsync)
 {
     InitWindow(windowName);
     InitVulkan(maxFramesInFlight);
@@ -78,20 +76,19 @@ void VKRenderer::SetScreenBackgroundColor(float r, float g, float b)
 
 void VKRenderer::HandleResize()
 {
-    renderPass.Recreate(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator,
-                        vulkanState.swapchain, viewWidth, viewHeight);
+    renderPass.Recreate(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator, vulkanState.swapchain,
+                        viewWidth, viewHeight);
     const VkExtent2D &extent = vulkanState.swapchain.GetExtent();
     screenRenderPass.Recreate(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator,
                               vulkanState.swapchain, extent.width, extent.height);
-    screenPipeline.Recreate<VertexData, InstanceData>(
-        vulkanState.device, vulkanState.maxFramesInFlight, screenRenderPass);
+    screenPipeline.Recreate<VertexData, InstanceData>(vulkanState.device, vulkanState.maxFramesInFlight,
+                                                      screenRenderPass);
 
-    ViewTransform viewTransform = Renderer::CalcViewTransform(windowWidth, windowHeight,
-        viewWidth, viewHeight);
+    ViewTransform viewTransform = Renderer::CalcViewTransform(windowWidth, windowHeight, viewWidth, viewHeight);
 
     ScreenUniformBufferData screenUboData{};
-    screenUboData.proj = VkOrtho(0.0f, static_cast<float>(windowWidth), 0.0f,
-                                 static_cast<float>(windowHeight), -zMax, zMax);
+    screenUboData.proj =
+        VkOrtho(0.0f, static_cast<float>(windowWidth), 0.0f, static_cast<float>(windowHeight), -zMax, zMax);
     screenUboData.viewSize = glm::vec2(viewTransform.scaledViewWidth, viewTransform.scaledViewHeight);
     screenUboData.offset = glm::vec2(viewTransform.offsetX, viewTransform.offsetY);
 
@@ -102,8 +99,8 @@ void VKRenderer::BeginDrawing()
 {
     vkWaitForFences(vulkanState.device, 1, &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
 
-    VkResult result = vulkanState.swapchain.GetNextImage(
-        vulkanState.device, imageAvailableSemaphores[currentFrame], currentImageIndex);
+    VkResult result = vulkanState.swapchain.GetNextImage(vulkanState.device, imageAvailableSemaphores[currentFrame],
+                                                         currentImageIndex);
 
     if (result == VK_ERROR_OUT_OF_DATE_KHR)
     {
@@ -111,9 +108,8 @@ void VKRenderer::BeginDrawing()
         int32_t width;
         int32_t height;
         SDL_Vulkan_GetDrawableSize(window, &width, &height);
-        vulkanState.swapchain.Recreate(vulkanState.allocator, vulkanState.device,
-                                       vulkanState.physicalDevice, vulkanState.surface, width,
-                                       height);
+        vulkanState.swapchain.Recreate(vulkanState.allocator, vulkanState.device, vulkanState.physicalDevice,
+                                       vulkanState.surface, width, height);
         HandleResize();
         return;
     }
@@ -131,10 +127,10 @@ void VKRenderer::BeginDrawing()
 
     vulkanState.commands.BeginBuffer(currentFrame);
 
-    clearValues[0].color = ConvertClearColor(backgroundR, backgroundG, backgroundB,
-        vulkanState.swapchain.GetImageFormat());
+    clearValues[0].color =
+        ConvertClearColor(backgroundR, backgroundG, backgroundB, vulkanState.swapchain.GetImageFormat());
     renderPass.Begin(currentImageIndex, currentBuffer, static_cast<uint32_t>(viewWidth),
-        static_cast<uint32_t>(viewHeight), clearValues);
+                     static_cast<uint32_t>(viewHeight), clearValues);
 }
 
 void VKRenderer::EndDrawing()
@@ -144,10 +140,10 @@ void VKRenderer::EndDrawing()
 
     renderPass.End(currentBuffer);
 
-    clearValues[0].color = ConvertClearColor(screenBackgroundR, screenBackgroundG,
-        screenBackgroundB, vulkanState.swapchain.GetImageFormat());
+    clearValues[0].color = ConvertClearColor(screenBackgroundR, screenBackgroundG, screenBackgroundB,
+                                             vulkanState.swapchain.GetImageFormat());
     screenRenderPass.Begin(currentImageIndex, currentBuffer, static_cast<uint32_t>(extent.width),
-        static_cast<uint32_t>(extent.height), clearValues);
+                           static_cast<uint32_t>(extent.height), clearValues);
     screenPipeline.Bind(currentBuffer, currentFrame);
 
     screenModel.Draw(currentBuffer);
@@ -172,8 +168,7 @@ void VKRenderer::EndDrawing()
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    if (vkQueueSubmit(vulkanState.graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) !=
-        VK_SUCCESS)
+    if (vkQueueSubmit(vulkanState.graphicsQueue, 1, &submitInfo, inFlightFences[currentFrame]) != VK_SUCCESS)
     {
         RUNTIME_ERROR("Failed to submit draw command buffer!");
     }
@@ -199,9 +194,8 @@ void VKRenderer::EndDrawing()
         int32_t width;
         int32_t height;
         SDL_Vulkan_GetDrawableSize(window, &width, &height);
-        vulkanState.swapchain.Recreate(vulkanState.allocator, vulkanState.device,
-                                       vulkanState.physicalDevice, vulkanState.surface, width,
-                                       height);
+        vulkanState.swapchain.Recreate(vulkanState.allocator, vulkanState.device, vulkanState.physicalDevice,
+                                       vulkanState.surface, width, height);
         HandleResize();
     }
     else if (result != VK_SUCCESS)
@@ -212,15 +206,15 @@ void VKRenderer::EndDrawing()
     currentFrame = (currentFrame + 1) % vulkanState.maxFramesInFlight;
 }
 
-SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites,
-    bool smooth, bool enableBlending)
+SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32_t maxSprites, bool smooth,
+                                          bool enableBlending)
 {
     Image textureImage = Image::CreateTexture(texturePath, vulkanState.allocator, vulkanState.commands,
-        vulkanState.graphicsQueue, vulkanState.device, false);
+                                              vulkanState.graphicsQueue, vulkanState.device, false);
     VkImageView textureImageView = textureImage.CreateTextureView(vulkanState.device);
     VkFilter filter = smooth ? VK_FILTER_LINEAR : VK_FILTER_NEAREST;
-    VkSampler textureSampler = textureImage.CreateTextureSampler(vulkanState.physicalDevice,
-        vulkanState.device, filter, filter);
+    VkSampler textureSampler =
+        textureImage.CreateTextureSampler(vulkanState.physicalDevice, vulkanState.device, filter, filter);
 
     int32_t textureWidth = static_cast<uint32_t>(textureImage.GetWidth());
     int32_t textureHeight = static_cast<uint32_t>(textureImage.GetHeight());
@@ -228,29 +222,26 @@ SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
     auto spriteBatch = SpriteBatch(textureWidth, textureHeight, maxSprites, enableBlending);
 
     Pipeline pipeline;
-    pipeline.CreateDescriptorSetLayout(
-        vulkanState.device, [&](std::vector<VkDescriptorSetLayoutBinding> &bindings)
-        {
-            VkDescriptorSetLayoutBinding uboLayoutBinding{};
-            uboLayoutBinding.binding = 0;
-            uboLayoutBinding.descriptorCount = 1;
-            uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-            uboLayoutBinding.pImmutableSamplers = nullptr;
-            uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    pipeline.CreateDescriptorSetLayout(vulkanState.device, [&](std::vector<VkDescriptorSetLayoutBinding> &bindings) {
+        VkDescriptorSetLayoutBinding uboLayoutBinding{};
+        uboLayoutBinding.binding = 0;
+        uboLayoutBinding.descriptorCount = 1;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.pImmutableSamplers = nullptr;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-            VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-            samplerLayoutBinding.binding = 1;
-            samplerLayoutBinding.descriptorCount = 1;
-            samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-            samplerLayoutBinding.pImmutableSamplers = nullptr;
-            samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+        samplerLayoutBinding.binding = 1;
+        samplerLayoutBinding.descriptorCount = 1;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.pImmutableSamplers = nullptr;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-            bindings.push_back(uboLayoutBinding);
-            bindings.push_back(samplerLayoutBinding); });
+        bindings.push_back(uboLayoutBinding);
+        bindings.push_back(samplerLayoutBinding);
+    });
     pipeline.CreateDescriptorPool(
-        vulkanState.maxFramesInFlight, vulkanState.device,
-        [&](std::vector<VkDescriptorPoolSize> poolSizes)
-        {
+        vulkanState.maxFramesInFlight, vulkanState.device, [&](std::vector<VkDescriptorPoolSize> poolSizes) {
             poolSizes.resize(2);
             poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             poolSizes[0].descriptorCount = static_cast<uint32_t>(vulkanState.maxFramesInFlight);
@@ -259,9 +250,7 @@ SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
         });
     pipeline.CreateDescriptorSets(
         vulkanState.maxFramesInFlight, vulkanState.device,
-        [&](std::vector<VkWriteDescriptorSet> &descriptorWrites, VkDescriptorSet descriptorSet,
-            uint32_t i)
-        {
+        [&](std::vector<VkWriteDescriptorSet> &descriptorWrites, VkDescriptorSet descriptorSet, uint32_t i) {
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = ubo.GetBuffer(i);
             bufferInfo.offset = 0;
@@ -290,23 +279,19 @@ SpriteBatch VKRenderer::CreateSpriteBatch(const std::string &texturePath, uint32
             descriptorWrites[1].descriptorCount = 1;
             descriptorWrites[1].pImageInfo = &imageInfo;
 
-            vkUpdateDescriptorSets(vulkanState.device,
-                                   static_cast<uint32_t>(descriptorWrites.size()),
+            vkUpdateDescriptorSets(vulkanState.device, static_cast<uint32_t>(descriptorWrites.size()),
                                    descriptorWrites.data(), 0, nullptr);
         });
-    pipeline.Create<VertexData, InstanceData>("res/VKSprite.vert.spv", "res/VKSprite.frag.spv",
-                                              vulkanState.device, renderPass, enableBlending);
+    pipeline.Create<VertexData, InstanceData>("res/VKSprite.vert.spv", "res/VKSprite.frag.spv", vulkanState.device,
+                                              renderPass, enableBlending);
 
-    Model<VertexData, uint32_t, InstanceData> model = Model<VertexData, uint32_t, InstanceData>::Create(1, vulkanState.allocator,
-                                                                                                        vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device);
-    model.UpdateInstances({InstanceData{}}, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
+    Model<VertexData, uint32_t, InstanceData> model = Model<VertexData, uint32_t, InstanceData>::Create(
+        1, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device);
+    model.UpdateInstances({InstanceData{}}, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue,
+                          vulkanState.device);
 
     VKSpriteBatchData spriteBatchData{
-        textureImage,
-        textureImageView,
-        textureSampler,
-        pipeline,
-        model,
+        textureImage, textureImageView, textureSampler, pipeline, model,
     };
 
     spriteBatchDatas.insert(std::make_pair(spriteBatch.GetId(), spriteBatchData));
@@ -327,7 +312,8 @@ void VKRenderer::DrawSpriteBatch(SpriteBatch &spriteBatch)
     size_t vertexCount = spriteBatch.GetSpriteCount() * verticesPerSprite;
     size_t indexCount = spriteBatch.GetSpriteCount() * indicesPerSprite;
 
-    spriteBatchData.model.Update(vertices, &spriteBatch.GetIndices()[0], vertexCount, indexCount, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
+    spriteBatchData.model.Update(vertices, &spriteBatch.GetIndices()[0], vertexCount, indexCount, vulkanState.commands,
+                                 vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
 
     const VkCommandBuffer &currentBuffer = vulkanState.commands.GetBuffer(currentFrame);
 
@@ -363,9 +349,8 @@ void VKRenderer::InitWindow(const std::string &windowName)
         RUNTIME_ERROR("Unable to initialize Vulkan!");
     }
 
-    window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-                              windowWidth, windowHeight,
-                              SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+    window = SDL_CreateWindow(windowName.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, windowWidth,
+                              windowHeight, SDL_WINDOW_VULKAN | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 }
 
 void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
@@ -383,10 +368,9 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
 
     vulkanState.maxFramesInFlight = maxFramesInFlight;
 
-    vulkanState.swapchain.Create(vulkanState.device, vulkanState.physicalDevice,
-                                 vulkanState.surface, width, height, enableVsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR);
-    vulkanState.commands.CreatePool(vulkanState.physicalDevice, vulkanState.device,
-                                    vulkanState.surface);
+    vulkanState.swapchain.Create(vulkanState.device, vulkanState.physicalDevice, vulkanState.surface, width, height,
+                                 enableVsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR);
+    vulkanState.commands.CreatePool(vulkanState.physicalDevice, vulkanState.device, vulkanState.surface);
     vulkanState.commands.CreateBuffers(vulkanState.device, vulkanState.maxFramesInFlight);
 
     VkSamplerCreateInfo samplerInfo{};
@@ -405,8 +389,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
     samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
     samplerInfo.maxLod = 1.0f;
 
-    if (vkCreateSampler(vulkanState.device, &samplerInfo, nullptr, &screenColorSampler) !=
-        VK_SUCCESS)
+    if (vkCreateSampler(vulkanState.device, &samplerInfo, nullptr, &screenColorSampler) != VK_SUCCESS)
     {
         RUNTIME_ERROR("Failed to create color sampler!");
     }
@@ -414,8 +397,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
     ubo.Create(vulkanState.maxFramesInFlight, vulkanState.allocator);
 
     UniformBufferData uboData{};
-    uboData.proj = VkOrtho(0.0f, static_cast<float>(viewWidth), 0.0f,
-                           static_cast<float>(viewHeight), -zMax, zMax);
+    uboData.proj = VkOrtho(0.0f, static_cast<float>(viewWidth), 0.0f, static_cast<float>(viewHeight), -zMax, zMax);
 
     ubo.Update(uboData);
 
@@ -423,8 +405,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
 
     renderPass.CreateCustom(
         vulkanState.device, vulkanState.swapchain, viewWidth, viewHeight,
-        [&]
-        {
+        [&] {
             VkAttachmentDescription colorAttachment{};
             colorAttachment.format = vulkanState.swapchain.GetImageFormat();
             colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -467,16 +448,14 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
             dependencies[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
             dependencies[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dependencies[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-            dependencies[0].dstAccessMask =
-                VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            dependencies[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
             dependencies[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
             dependencies[1].srcSubpass = 0;
             dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
             dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
             dependencies[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-            dependencies[1].srcAccessMask =
-                VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+            dependencies[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
             dependencies[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
             dependencies[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
@@ -493,77 +472,69 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
 
             VkRenderPass renderPass;
 
-            if (vkCreateRenderPass(vulkanState.device, &renderPassInfo, nullptr, &renderPass) !=
-                VK_SUCCESS)
+            if (vkCreateRenderPass(vulkanState.device, &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS)
             {
                 RUNTIME_ERROR("Failed to create render pass!");
             }
 
             return renderPass;
         },
-        [&](const VkExtent2D &extent)
-        {
-            screenColorImage = Image(vulkanState.allocator, viewWidth, viewHeight,
-                                     vulkanState.swapchain.GetImageFormat(), VK_IMAGE_TILING_OPTIMAL,
-                                     VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-            screenColorImageView =
-                screenColorImage.CreateView(VK_IMAGE_ASPECT_COLOR_BIT, vulkanState.device);
+        [&](const VkExtent2D &extent) {
+            screenColorImage =
+                Image(vulkanState.allocator, viewWidth, viewHeight, vulkanState.swapchain.GetImageFormat(),
+                      VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                      VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            screenColorImageView = screenColorImage.CreateView(VK_IMAGE_ASPECT_COLOR_BIT, vulkanState.device);
 
             VkFormat depthFormat = renderPass.FindDepthFormat(vulkanState.physicalDevice);
             screenDepthImage = Image(vulkanState.allocator, viewWidth, viewHeight, depthFormat, VK_IMAGE_TILING_OPTIMAL,
-                                     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
-                                     VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+                                     VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
             screenDepthImageView = screenDepthImage.CreateView(VK_IMAGE_ASPECT_DEPTH_BIT, vulkanState.device);
         },
-        [=]
-        {
+        [=] {
             vkDestroyImageView(vulkanState.device, screenColorImageView, nullptr);
             screenColorImage.Destroy(vulkanState.allocator);
 
             vkDestroyImageView(vulkanState.device, screenDepthImageView, nullptr);
             screenDepthImage.Destroy(vulkanState.allocator);
         },
-        [&](std::vector<VkImageView> &attachments, VkImageView imageView)
-        {
+        [&](std::vector<VkImageView> &attachments, VkImageView imageView) {
             attachments.push_back(screenColorImageView);
             attachments.push_back(screenDepthImageView);
         });
 
-    screenRenderPass.Create(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator, vulkanState.swapchain, true, false);
+    screenRenderPass.Create(vulkanState.physicalDevice, vulkanState.device, vulkanState.allocator,
+                            vulkanState.swapchain, true, false);
 
     screenPipeline.CreateDescriptorSetLayout(
-        vulkanState.device, [&](std::vector<VkDescriptorSetLayoutBinding> &bindings)
-        {
-                VkDescriptorSetLayoutBinding uboLayoutBinding{};
-                uboLayoutBinding.binding = 0;
-                uboLayoutBinding.descriptorCount = 1;
-                uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-                uboLayoutBinding.pImmutableSamplers = nullptr;
-                uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        vulkanState.device, [&](std::vector<VkDescriptorSetLayoutBinding> &bindings) {
+            VkDescriptorSetLayoutBinding uboLayoutBinding{};
+            uboLayoutBinding.binding = 0;
+            uboLayoutBinding.descriptorCount = 1;
+            uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            uboLayoutBinding.pImmutableSamplers = nullptr;
+            uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-                VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-                samplerLayoutBinding.binding = 1;
-                samplerLayoutBinding.descriptorCount = 1;
-                samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                samplerLayoutBinding.pImmutableSamplers = nullptr;
-                samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+            VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+            samplerLayoutBinding.binding = 1;
+            samplerLayoutBinding.descriptorCount = 1;
+            samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            samplerLayoutBinding.pImmutableSamplers = nullptr;
+            samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-                VkDescriptorSetLayoutBinding depthSamplerLayoutBinding{};
-                depthSamplerLayoutBinding.binding = 2;
-                depthSamplerLayoutBinding.descriptorCount = 1;
-                depthSamplerLayoutBinding.descriptorType =
-                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                depthSamplerLayoutBinding.pImmutableSamplers = nullptr;
-                depthSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+            VkDescriptorSetLayoutBinding depthSamplerLayoutBinding{};
+            depthSamplerLayoutBinding.binding = 2;
+            depthSamplerLayoutBinding.descriptorCount = 1;
+            depthSamplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            depthSamplerLayoutBinding.pImmutableSamplers = nullptr;
+            depthSamplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-                bindings.push_back(uboLayoutBinding);
-                bindings.push_back(samplerLayoutBinding);
-                bindings.push_back(depthSamplerLayoutBinding); });
+            bindings.push_back(uboLayoutBinding);
+            bindings.push_back(samplerLayoutBinding);
+            bindings.push_back(depthSamplerLayoutBinding);
+        });
     screenPipeline.CreateDescriptorPool(
-        vulkanState.maxFramesInFlight, vulkanState.device,
-        [&](std::vector<VkDescriptorPoolSize> poolSizes)
-        {
+        vulkanState.maxFramesInFlight, vulkanState.device, [&](std::vector<VkDescriptorPoolSize> poolSizes) {
             poolSizes.resize(3);
             poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
             poolSizes[0].descriptorCount = static_cast<uint32_t>(vulkanState.maxFramesInFlight);
@@ -574,9 +545,7 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
         });
     screenPipeline.CreateDescriptorSets(
         vulkanState.maxFramesInFlight, vulkanState.device,
-        [&](std::vector<VkWriteDescriptorSet> &descriptorWrites, VkDescriptorSet descriptorSet,
-            uint32_t i)
-        {
+        [&](std::vector<VkWriteDescriptorSet> &descriptorWrites, VkDescriptorSet descriptorSet, uint32_t i) {
             VkDescriptorBufferInfo bufferInfo{};
             bufferInfo.buffer = screenUbo.GetBuffer(i);
             bufferInfo.offset = 0;
@@ -605,20 +574,21 @@ void VKRenderer::InitVulkan(const uint32_t maxFramesInFlight)
             descriptorWrites[1].descriptorCount = 1;
             descriptorWrites[1].pImageInfo = &imageInfo;
 
-            vkUpdateDescriptorSets(vulkanState.device,
-                                   static_cast<uint32_t>(descriptorWrites.size()),
+            vkUpdateDescriptorSets(vulkanState.device, static_cast<uint32_t>(descriptorWrites.size()),
                                    descriptorWrites.data(), 0, nullptr);
         });
-    screenPipeline.Create<VertexData, InstanceData>("res/VKScreen.vert.spv",
-                                                    "res/VKScreen.frag.spv",
+    screenPipeline.Create<VertexData, InstanceData>("res/VKScreen.vert.spv", "res/VKScreen.frag.spv",
                                                     vulkanState.device, screenRenderPass, false);
 
     clearValues.resize(2);
     clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}};
     clearValues[1].depthStencil = {1.0f, 0};
 
-    screenModel = Model<VertexData, uint32_t, InstanceData>::FromVerticesAndIndices(screenVertices, screenIndices, 1, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue, vulkanState.device);
-    screenModel.UpdateInstances({InstanceData{}}, vulkanState.commands, vulkanState.allocator, vulkanState.graphicsQueue, vulkanState.device);
+    screenModel = Model<VertexData, uint32_t, InstanceData>::FromVerticesAndIndices(
+        screenVertices, screenIndices, 1, vulkanState.allocator, vulkanState.commands, vulkanState.graphicsQueue,
+        vulkanState.device);
+    screenModel.UpdateInstances({InstanceData{}}, vulkanState.commands, vulkanState.allocator,
+                                vulkanState.graphicsQueue, vulkanState.device);
 
     CreateSyncObjects();
 }
@@ -766,8 +736,7 @@ void VKRenderer::SetupDebugMessenger()
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     PopulateDebugMessengerCreateInfo(createInfo);
 
-    if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) !=
-        VK_SUCCESS)
+    if (CreateDebugUtilsMessengerEXT(instance, &createInfo, nullptr, &debugMessenger) != VK_SUCCESS)
     {
         RUNTIME_ERROR("Failed to set up debug messenger!");
     }
@@ -811,12 +780,10 @@ void VKRenderer::PickPhysicalDevice()
 
 void VKRenderer::CreateLogicalDevice()
 {
-    QueueFamilyIndices indices =
-        QueueFamilyIndices::FindQueueFamilies(vulkanState.physicalDevice, vulkanState.surface);
+    QueueFamilyIndices indices = QueueFamilyIndices::FindQueueFamilies(vulkanState.physicalDevice, vulkanState.surface);
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(),
-                                              indices.presentFamily.value()};
+    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
 
     float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies)
@@ -854,14 +821,12 @@ void VKRenderer::CreateLogicalDevice()
         createInfo.enabledLayerCount = 0;
     }
 
-    if (vkCreateDevice(vulkanState.physicalDevice, &createInfo, nullptr, &vulkanState.device) !=
-        VK_SUCCESS)
+    if (vkCreateDevice(vulkanState.physicalDevice, &createInfo, nullptr, &vulkanState.device) != VK_SUCCESS)
     {
         RUNTIME_ERROR("Failed to create logical device!");
     }
 
-    vkGetDeviceQueue(vulkanState.device, indices.graphicsFamily.value(), 0,
-                     &vulkanState.graphicsQueue);
+    vkGetDeviceQueue(vulkanState.device, indices.graphicsFamily.value(), 0, &vulkanState.graphicsQueue);
     vkGetDeviceQueue(vulkanState.device, indices.presentFamily.value(), 0, &presentQueue);
 }
 
@@ -877,8 +842,7 @@ uint32_t VKRenderer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags p
 
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++)
     {
-        if ((typeFilter & (1 << i)) &&
-            (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
+        if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
         {
             return i;
         }
@@ -902,12 +866,11 @@ void VKRenderer::CreateSyncObjects()
 
     for (size_t i = 0; i < vulkanState.maxFramesInFlight; i++)
     {
-        if (vkCreateSemaphore(vulkanState.device, &semaphoreInfo, nullptr,
-                              &imageAvailableSemaphores[i]) != VK_SUCCESS ||
-            vkCreateSemaphore(vulkanState.device, &semaphoreInfo, nullptr,
-                              &renderFinishedSemaphores[i]) != VK_SUCCESS ||
-            vkCreateFence(vulkanState.device, &fenceInfo, nullptr, &inFlightFences[i]) !=
-                VK_SUCCESS)
+        if (vkCreateSemaphore(vulkanState.device, &semaphoreInfo, nullptr, &imageAvailableSemaphores[i]) !=
+                VK_SUCCESS ||
+            vkCreateSemaphore(vulkanState.device, &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) !=
+                VK_SUCCESS ||
+            vkCreateFence(vulkanState.device, &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS)
         {
             RUNTIME_ERROR("Failed to create synchronization objects for a frame!");
         }
@@ -923,17 +886,14 @@ bool VKRenderer::IsDeviceSuitable(VkPhysicalDevice device)
     bool swapChainAdequate = false;
     if (extensionsSupported)
     {
-        SwapchainSupportDetails swapchainSupport =
-            vulkanState.swapchain.QuerySupport(device, vulkanState.surface);
-        swapChainAdequate =
-            !swapchainSupport.formats.empty() && !swapchainSupport.presentModes.empty();
+        SwapchainSupportDetails swapchainSupport = vulkanState.swapchain.QuerySupport(device, vulkanState.surface);
+        swapChainAdequate = !swapchainSupport.formats.empty() && !swapchainSupport.presentModes.empty();
     }
 
     VkPhysicalDeviceFeatures supportedFeatures;
     vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
-    return indices.IsComplete() && extensionsSupported && swapChainAdequate &&
-           supportedFeatures.samplerAnisotropy;
+    return indices.IsComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
 bool VKRenderer::CheckDeviceExtensionSupport(VkPhysicalDevice device)
@@ -942,8 +902,7 @@ bool VKRenderer::CheckDeviceExtensionSupport(VkPhysicalDevice device)
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
 
     std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount,
-                                         availableExtensions.data());
+    vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
 
     std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
 
@@ -1007,10 +966,10 @@ bool VKRenderer::CheckValidationLayerSupport()
     return true;
 }
 
-VKAPI_ATTR VkBool32 VKAPI_CALL VKRenderer::DebugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT *callbackData, void *userData)
+VKAPI_ATTR VkBool32 VKAPI_CALL VKRenderer::DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+                                                         VkDebugUtilsMessageTypeFlagsEXT messageType,
+                                                         const VkDebugUtilsMessengerCallbackDataEXT *callbackData,
+                                                         void *userData)
 {
     std::cerr << "Validation layer: " << callbackData->pMessage << std::endl;
 
@@ -1019,8 +978,7 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VKRenderer::DebugCallback(
 
 // An alternative to glm::ortho that is designed to work with Vulkan.
 // The normal glm projection matrix functions have unexpected behavior.
-glm::mat4 VKRenderer::VkOrtho(float left, float right, float bottom, float top,
-                              float near, float far)
+glm::mat4 VKRenderer::VkOrtho(float left, float right, float bottom, float top, float near, float far)
 {
     glm::mat4 ortho;
     ortho[0][0] = 2.0f / (right - left);

@@ -1,7 +1,7 @@
-#include <cinttypes>
-#include <iostream>
 #include <chrono>
+#include <cinttypes>
 #include <cstdlib>
+#include <iostream>
 
 #include "PxlRnd.hpp"
 
@@ -60,6 +60,7 @@ int main(int argc, char **argv)
 
         auto sprite = Sprite{};
         sprite.width = sprite.height = sprite.texWidth = sprite.texHeight = 64;
+        sprite.a = 0.5f;
 
         for (int32_t i = 0; i < 50'000; i++)
         {

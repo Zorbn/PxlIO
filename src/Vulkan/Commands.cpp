@@ -20,8 +20,7 @@ VkCommandBuffer Commands::BeginSingleTime(VkQueue graphicsQueue, VkDevice device
     return commandBuffer;
 }
 
-void Commands::EndSingleTime(VkCommandBuffer commandBuffer, VkQueue graphicsQueue,
-                             VkDevice device)
+void Commands::EndSingleTime(VkCommandBuffer commandBuffer, VkQueue graphicsQueue, VkDevice device)
 {
     vkEndCommandBuffer(commandBuffer);
 
@@ -38,8 +37,7 @@ void Commands::EndSingleTime(VkCommandBuffer commandBuffer, VkQueue graphicsQueu
 
 void Commands::CreatePool(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface)
 {
-    QueueFamilyIndices queueFamilyIndices =
-        QueueFamilyIndices::FindQueueFamilies(physicalDevice, surface);
+    QueueFamilyIndices queueFamilyIndices = QueueFamilyIndices::FindQueueFamilies(physicalDevice, surface);
 
     VkCommandPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -97,4 +95,7 @@ const VkCommandBuffer &Commands::GetBuffer(const uint32_t currentFrame)
     return buffers[currentFrame];
 }
 
-void Commands::Destroy(VkDevice device) { vkDestroyCommandPool(device, commandPool, nullptr); }
+void Commands::Destroy(VkDevice device)
+{
+    vkDestroyCommandPool(device, commandPool, nullptr);
+}
