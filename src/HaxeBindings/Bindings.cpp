@@ -8,6 +8,7 @@
 #include <locale>
 
 static std::unique_ptr<Renderer> rend = nullptr;
+static bool isRunning = false;
 static Input input;
 static auto lastTime = std::chrono::high_resolution_clock::now();
 static float deltaTime = 0.0f;
@@ -34,6 +35,7 @@ HL_PRIM void HL_NAME(pxlrnd_create)(vstring *windowName, int32_t windowWidth, in
 
     std::string name = GetHaxeString(windowName);
     rend = PxlRnd::Create(name.c_str(), windowWidth, windowHeight, viewWidth, viewHeight, enableVsync);
+    isRunning = true;
 }
 
 HL_PRIM bool HL_NAME(pxlrnd_poll_events)()
@@ -50,7 +52,6 @@ HL_PRIM bool HL_NAME(pxlrnd_poll_events)()
 
     input.Update();
 
-    bool isRunning = true;
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -274,6 +275,11 @@ HL_PRIM bool HL_NAME(pxlrnd_was_mouse_button_released)(int32_t mouseButtonNumber
     return input.WasMouseButtonReleased((MouseButton)mouseButtonNumber);
 }
 
+HL_PRIM void HL_NAME(pxlrnd_close)()
+{
+    isRunning = false;
+}
+
 DEFINE_PRIM(_VOID, pxlrnd_create, _STRING _I32 _I32 _I32 _I32 _BOOL);
 DEFINE_PRIM(_BOOL, pxlrnd_poll_events, _NO_ARG);
 DEFINE_PRIM(_F32, pxlrnd_get_delta_time, _NO_ARG);
@@ -296,3 +302,4 @@ DEFINE_PRIM(_I32, pxlrnd_get_mouse_y, _NO_ARG);
 DEFINE_PRIM(_BOOL, pxlrnd_is_mouse_button_held, _I32);
 DEFINE_PRIM(_BOOL, pxlrnd_was_mouse_button_pressed, _I32);
 DEFINE_PRIM(_BOOL, pxlrnd_was_mouse_button_released, _I32);
+DEFINE_PRIM(_VOID, pxlrnd_close, _NO_ARG);

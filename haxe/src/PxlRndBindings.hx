@@ -68,4 +68,6 @@ class PxlRndBindings {
 	public static function pxlrnd_was_mouse_button_released(keyNumber:Int32):Bool {
 		return false;
 	}
+
+	public static function pxlrnd_close() {}
 }

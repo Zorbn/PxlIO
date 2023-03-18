@@ -18,8 +18,8 @@ class Main {
 		while (rnd.pollEvents()) {
 			var deltaTime = rnd.getDeltaTime();
 
-			if (rnd.isMouseButtonHeld(MouseButton.Left)) {
-				trace("left held");
+			if (rnd.wasKeyPressed(KeyCode.Escape)) {
+				rnd.close();
 			}
 
 			if (rnd.isKeyHeld(KeyCode.A)) {

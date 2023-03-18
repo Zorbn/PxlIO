@@ -212,7 +212,6 @@ enum MouseButton {
 };
 
 // TODO:
-// - Ability to quit the game with a keypress
 // - Rename library to PxlIo since it now includes input
 
 class Input

@@ -84,4 +84,8 @@ class PxlRnd {
 	public function wasMouseButtonReleased(mouseButton:Int32):Bool {
 		return PxlRndBindings.pxlrnd_was_mouse_button_released(mouseButton);
 	}
+
+	public function close() {
+		PxlRndBindings.pxlrnd_close();
+	}
 }
