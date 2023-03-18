@@ -1,8 +1,8 @@
 
-#define HL_NAME(n) PxlRnd_##n
+#define HL_NAME(n) PxlIO_##n
 
 #include "../Input.hpp"
-#include "../PxlRnd.hpp"
+#include "../PxlIO.hpp"
 #include <codecvt>
 #include <hl.h>
 #include <locale>
@@ -24,7 +24,7 @@ std::string GetHaxeString(vstring *haxeString)
     return string;
 }
 
-HL_PRIM void HL_NAME(pxlrnd_create)(vstring *windowName, int32_t windowWidth, int32_t windowHeight, int32_t viewWidth,
+HL_PRIM void HL_NAME(pxlio_create)(vstring *windowName, int32_t windowWidth, int32_t windowHeight, int32_t viewWidth,
                                     int32_t viewHeight, bool enableVsync)
 {
     if (rend != nullptr)
@@ -34,11 +34,11 @@ HL_PRIM void HL_NAME(pxlrnd_create)(vstring *windowName, int32_t windowWidth, in
     }
 
     std::string name = GetHaxeString(windowName);
-    rend = PxlRnd::Create(name.c_str(), windowWidth, windowHeight, viewWidth, viewHeight, enableVsync);
+    rend = PxlIO::Create(name.c_str(), windowWidth, windowHeight, viewWidth, viewHeight, enableVsync);
     isRunning = true;
 }
 
-HL_PRIM bool HL_NAME(pxlrnd_poll_events)()
+HL_PRIM bool HL_NAME(pxlio_poll_events)()
 {
     if (rend == nullptr)
     {
@@ -91,7 +91,7 @@ HL_PRIM bool HL_NAME(pxlrnd_poll_events)()
     return isRunning;
 }
 
-HL_PRIM float HL_NAME(pxlrnd_get_delta_time)()
+HL_PRIM float HL_NAME(pxlio_get_delta_time)()
 {
     if (rend == nullptr)
     {
@@ -102,7 +102,7 @@ HL_PRIM float HL_NAME(pxlrnd_get_delta_time)()
     return deltaTime;
 }
 
-HL_PRIM void HL_NAME(pxlrnd_begin_drawing)()
+HL_PRIM void HL_NAME(pxlio_begin_drawing)()
 {
     if (rend == nullptr)
     {
@@ -113,7 +113,7 @@ HL_PRIM void HL_NAME(pxlrnd_begin_drawing)()
     rend->BeginDrawing();
 }
 
-HL_PRIM void HL_NAME(pxlrnd_end_drawing)()
+HL_PRIM void HL_NAME(pxlio_end_drawing)()
 {
     if (rend == nullptr)
     {
@@ -124,7 +124,7 @@ HL_PRIM void HL_NAME(pxlrnd_end_drawing)()
     rend->EndDrawing();
 }
 
-HL_PRIM void HL_NAME(pxlrnd_set_background_color)(float r, float g, float b)
+HL_PRIM void HL_NAME(pxlio_set_background_color)(float r, float g, float b)
 {
     if (rend == nullptr)
     {
@@ -135,7 +135,7 @@ HL_PRIM void HL_NAME(pxlrnd_set_background_color)(float r, float g, float b)
     rend->SetBackgroundColor(static_cast<float>(r), static_cast<float>(g), static_cast<float>(b));
 }
 
-HL_PRIM void HL_NAME(pxlrnd_set_screen_background_color)(float r, float g, float b)
+HL_PRIM void HL_NAME(pxlio_set_screen_background_color)(float r, float g, float b)
 {
     if (rend == nullptr)
     {
@@ -146,7 +146,7 @@ HL_PRIM void HL_NAME(pxlrnd_set_screen_background_color)(float r, float g, float
     rend->SetScreenBackgroundColor(static_cast<float>(r), static_cast<float>(g), static_cast<float>(b));
 }
 
-HL_PRIM int32_t HL_NAME(pxlrnd_create_sprite_batch)(vstring *texturePath, int32_t maxSprites, bool smooth,
+HL_PRIM int32_t HL_NAME(pxlio_create_sprite_batch)(vstring *texturePath, int32_t maxSprites, bool smooth,
                                                     bool enableBlending)
 {
     if (rend == nullptr)
@@ -163,7 +163,7 @@ HL_PRIM int32_t HL_NAME(pxlrnd_create_sprite_batch)(vstring *texturePath, int32_
     return id;
 }
 
-HL_PRIM void HL_NAME(pxlrnd_destroy_sprite_batch)(int32_t id)
+HL_PRIM void HL_NAME(pxlio_destroy_sprite_batch)(int32_t id)
 {
     if (rend == nullptr)
     {
@@ -176,13 +176,13 @@ HL_PRIM void HL_NAME(pxlrnd_destroy_sprite_batch)(int32_t id)
     spriteBatches.erase(id);
 }
 
-HL_PRIM void HL_NAME(pxlrnd_sprite_batch_clear)(int32_t id)
+HL_PRIM void HL_NAME(pxlio_sprite_batch_clear)(int32_t id)
 {
     SpriteBatch &spriteBatch = spriteBatches.at(id);
     spriteBatch.Clear();
 }
 
-HL_PRIM void HL_NAME(pxlrnd_sprite_batch_add)(int32_t id, float x, float y, float z, float width, float height,
+HL_PRIM void HL_NAME(pxlio_sprite_batch_add)(int32_t id, float x, float y, float z, float width, float height,
                                               float texX, float texY, float texWidth, float texHeight, float originX,
                                               float originY, float rotation, float r, float g, float b, float a,
                                               float tint)
@@ -208,7 +208,7 @@ HL_PRIM void HL_NAME(pxlrnd_sprite_batch_add)(int32_t id, float x, float y, floa
     spriteBatch.Add(x, y, z, sprite);
 }
 
-HL_PRIM void HL_NAME(pxlrnd_draw_sprite_batch)(int32_t id)
+HL_PRIM void HL_NAME(pxlio_draw_sprite_batch)(int32_t id)
 {
     if (rend == nullptr)
     {
@@ -220,22 +220,22 @@ HL_PRIM void HL_NAME(pxlrnd_draw_sprite_batch)(int32_t id)
     rend->DrawSpriteBatch(spriteBatch);
 }
 
-HL_PRIM bool HL_NAME(pxlrnd_is_key_held)(int32_t keyNumber)
+HL_PRIM bool HL_NAME(pxlio_is_key_held)(int32_t keyNumber)
 {
     return input.IsKeyHeld((KeyCode)keyNumber);
 }
 
-HL_PRIM bool HL_NAME(pxlrnd_was_key_pressed)(int32_t keyNumber)
+HL_PRIM bool HL_NAME(pxlio_was_key_pressed)(int32_t keyNumber)
 {
     return input.WasKeyPressed((KeyCode)keyNumber);
 }
 
-HL_PRIM bool HL_NAME(pxlrnd_was_key_released)(int32_t keyNumber)
+HL_PRIM bool HL_NAME(pxlio_was_key_released)(int32_t keyNumber)
 {
     return input.WasKeyReleased((KeyCode)keyNumber);
 }
 
-HL_PRIM vbyte *HL_NAME(pxlrnd_get_pressed_keys)()
+HL_PRIM vbyte *HL_NAME(pxlio_get_pressed_keys)()
 {
     auto &pressedKeys = input.GetPressedKeys();
 
@@ -250,56 +250,56 @@ HL_PRIM vbyte *HL_NAME(pxlrnd_get_pressed_keys)()
     return buffer;
 }
 
-HL_PRIM int32_t HL_NAME(pxlrnd_get_mouse_x)()
+HL_PRIM int32_t HL_NAME(pxlio_get_mouse_x)()
 {
     return input.GetMouseX();
 }
 
-HL_PRIM int32_t HL_NAME(pxlrnd_get_mouse_y)()
+HL_PRIM int32_t HL_NAME(pxlio_get_mouse_y)()
 {
     return input.GetMouseY();
 }
 
-HL_PRIM bool HL_NAME(pxlrnd_is_mouse_button_held)(int32_t mouseButtonNumber)
+HL_PRIM bool HL_NAME(pxlio_is_mouse_button_held)(int32_t mouseButtonNumber)
 {
     return input.IsMouseButtonHeld((MouseButton)mouseButtonNumber);
 }
 
-HL_PRIM bool HL_NAME(pxlrnd_was_mouse_button_pressed)(int32_t mouseButtonNumber)
+HL_PRIM bool HL_NAME(pxlio_was_mouse_button_pressed)(int32_t mouseButtonNumber)
 {
     return input.WasMouseButtonPressed((MouseButton)mouseButtonNumber);
 }
 
-HL_PRIM bool HL_NAME(pxlrnd_was_mouse_button_released)(int32_t mouseButtonNumber)
+HL_PRIM bool HL_NAME(pxlio_was_mouse_button_released)(int32_t mouseButtonNumber)
 {
     return input.WasMouseButtonReleased((MouseButton)mouseButtonNumber);
 }
 
-HL_PRIM void HL_NAME(pxlrnd_close)()
+HL_PRIM void HL_NAME(pxlio_close)()
 {
     isRunning = false;
 }
 
-DEFINE_PRIM(_VOID, pxlrnd_create, _STRING _I32 _I32 _I32 _I32 _BOOL);
-DEFINE_PRIM(_BOOL, pxlrnd_poll_events, _NO_ARG);
-DEFINE_PRIM(_F32, pxlrnd_get_delta_time, _NO_ARG);
-DEFINE_PRIM(_VOID, pxlrnd_begin_drawing, _NO_ARG);
-DEFINE_PRIM(_VOID, pxlrnd_end_drawing, _NO_ARG);
-DEFINE_PRIM(_VOID, pxlrnd_set_background_color, _F32 _F32 _F32);
-DEFINE_PRIM(_VOID, pxlrnd_set_screen_background_color, _F32 _F32 _F32);
-DEFINE_PRIM(_I32, pxlrnd_create_sprite_batch, _STRING _I32 _BOOL _BOOL);
-DEFINE_PRIM(_VOID, pxlrnd_destroy_sprite_batch, _I32);
-DEFINE_PRIM(_VOID, pxlrnd_sprite_batch_clear, _I32);
-DEFINE_PRIM(_VOID, pxlrnd_sprite_batch_add,
+DEFINE_PRIM(_VOID, pxlio_create, _STRING _I32 _I32 _I32 _I32 _BOOL);
+DEFINE_PRIM(_BOOL, pxlio_poll_events, _NO_ARG);
+DEFINE_PRIM(_F32, pxlio_get_delta_time, _NO_ARG);
+DEFINE_PRIM(_VOID, pxlio_begin_drawing, _NO_ARG);
+DEFINE_PRIM(_VOID, pxlio_end_drawing, _NO_ARG);
+DEFINE_PRIM(_VOID, pxlio_set_background_color, _F32 _F32 _F32);
+DEFINE_PRIM(_VOID, pxlio_set_screen_background_color, _F32 _F32 _F32);
+DEFINE_PRIM(_I32, pxlio_create_sprite_batch, _STRING _I32 _BOOL _BOOL);
+DEFINE_PRIM(_VOID, pxlio_destroy_sprite_batch, _I32);
+DEFINE_PRIM(_VOID, pxlio_sprite_batch_clear, _I32);
+DEFINE_PRIM(_VOID, pxlio_sprite_batch_add,
             _I32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32);
-DEFINE_PRIM(_VOID, pxlrnd_draw_sprite_batch, _I32);
-DEFINE_PRIM(_BOOL, pxlrnd_is_key_held, _I32);
-DEFINE_PRIM(_BOOL, pxlrnd_was_key_pressed, _I32);
-DEFINE_PRIM(_BOOL, pxlrnd_was_key_released, _I32);
-DEFINE_PRIM(_BYTES, pxlrnd_get_pressed_keys, _NO_ARG);
-DEFINE_PRIM(_I32, pxlrnd_get_mouse_x, _NO_ARG);
-DEFINE_PRIM(_I32, pxlrnd_get_mouse_y, _NO_ARG);
-DEFINE_PRIM(_BOOL, pxlrnd_is_mouse_button_held, _I32);
-DEFINE_PRIM(_BOOL, pxlrnd_was_mouse_button_pressed, _I32);
-DEFINE_PRIM(_BOOL, pxlrnd_was_mouse_button_released, _I32);
-DEFINE_PRIM(_VOID, pxlrnd_close, _NO_ARG);
+DEFINE_PRIM(_VOID, pxlio_draw_sprite_batch, _I32);
+DEFINE_PRIM(_BOOL, pxlio_is_key_held, _I32);
+DEFINE_PRIM(_BOOL, pxlio_was_key_pressed, _I32);
+DEFINE_PRIM(_BOOL, pxlio_was_key_released, _I32);
+DEFINE_PRIM(_BYTES, pxlio_get_pressed_keys, _NO_ARG);
+DEFINE_PRIM(_I32, pxlio_get_mouse_x, _NO_ARG);
+DEFINE_PRIM(_I32, pxlio_get_mouse_y, _NO_ARG);
+DEFINE_PRIM(_BOOL, pxlio_is_mouse_button_held, _I32);
+DEFINE_PRIM(_BOOL, pxlio_was_mouse_button_pressed, _I32);
+DEFINE_PRIM(_BOOL, pxlio_was_mouse_button_released, _I32);
+DEFINE_PRIM(_VOID, pxlio_close, _NO_ARG);

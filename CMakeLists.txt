@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(PxlRnd VERSION 0.1.0)
+project(PxlIO VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 17)
 
 include(CTest)
@@ -15,7 +15,7 @@ endif()
 
 set(
     COMMON_SOURCE
-    src/PxlRnd.hpp
+    src/PxlIO.hpp
     src/Renderer.hpp
     src/SpriteBatch.hpp
     src/ImageLoader.cpp src/ImageLoader.hpp
@@ -56,13 +56,13 @@ if(GENERATE_HAXE_BINDINGS)
     list(APPEND ENABLED_SOURCE ${HAXE_BINDINGS_SOURCE})
 
     add_library(
-        PxlRnd SHARED
+        PxlIO SHARED
         ${COMMON_SOURCE}
         ${ENABLED_SOURCE}
     )
 else()
     add_executable(
-        PxlRnd
+        PxlIO
         src/Main.cpp
         ${COMMON_SOURCE}
         ${ENABLED_SOURCE}
@@ -70,7 +70,7 @@ else()
 endif()
 
 if(EMSCRIPTEN)
-    set_target_properties(PxlRnd PROPERTIES LINK_FLAGS "-O2 -sASYNCIFY -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 \
+    set_target_properties(PxlIO PROPERTIES LINK_FLAGS "-O2 -sASYNCIFY -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 \
         -sMAX_WEBGL_VERSION=2 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='\"png\"' --preload-file ../res \
         --profiling")
 endif()
@@ -90,7 +90,7 @@ include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 find_package(glm CONFIG REQUIRED)
 
 target_link_libraries(
-    PxlRnd PRIVATE
+    PxlIO PRIVATE
     glm::glm
 )
 
@@ -102,7 +102,7 @@ if(NOT EMSCRIPTEN)
     find_package(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
 
     target_link_libraries(
-        PxlRnd PRIVATE
+        PxlIO PRIVATE
         $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
         $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>
@@ -118,11 +118,11 @@ if(GENERATE_HAXE_BINDINGS)
     find_library(LIBHL_LIBRARY libhl HINTS ${HASHLINKPATH})
 
     target_link_libraries(
-        PxlRnd PRIVATE
+        PxlIO PRIVATE
         ${LIBHL_LIBRARY}
     )
 
-    target_include_directories(PxlRnd PRIVATE ${HASHLINKPATH}/include)
+    target_include_directories(PxlIO PRIVATE ${HASHLINKPATH}/include)
 endif()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})

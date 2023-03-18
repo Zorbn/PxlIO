@@ -3,12 +3,12 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "PxlRnd.hpp"
+#include "PxlIO.hpp"
 #include "Input.hpp"
 
 int main(int argc, char **argv)
 {
-    std::unique_ptr<Renderer> rend = PxlRnd::Create("PxlRnd", 640, 480, 320, 240);
+    std::unique_ptr<Renderer> rend = PxlIO::Create("PxlIO", 640, 480, 320, 240);
 
     SDL_Window *window = rend->GetWindowPtr();
 

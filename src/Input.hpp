@@ -211,9 +211,6 @@ enum MouseButton {
     MouseButtonX2 = SDL_BUTTON_X2,
 };
 
-// TODO:
-// - Rename library to PxlIo since it now includes input
-
 class Input
 {
 public:

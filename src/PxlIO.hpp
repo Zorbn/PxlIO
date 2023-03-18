@@ -6,7 +6,7 @@
 #include "Vulkan/VKRenderer.hpp"
 #endif
 
-class PxlRnd
+class PxlIO
 {
   public:
     static std::unique_ptr<Renderer> Create(const std::string &windowName, int32_t windowWidth, int32_t windowHeight,

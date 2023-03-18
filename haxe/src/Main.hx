@@ -2,10 +2,10 @@ import haxe.Int32;
 
 class Main {
 	static function main() {
-		var rnd = new PxlRnd("Rendering Pixels in Haxe", 640, 480, 320, 240);
-		rnd.setBackgroundColor(0.4, 0.6, 0.9);
+		var io = new PxlIO("Rendering Pixels in Haxe", 640, 480, 320, 240);
+		io.setBackgroundColor(0.4, 0.6, 0.9);
 
-		var spriteBatch = rnd.createSpriteBatch("res/tiles.png", 1000);
+		var spriteBatch = io.createSpriteBatch("res/tiles.png", 1000);
 		var sprite = new Sprite();
 		sprite.texX = 0;
 		sprite.texY = 0;
@@ -15,35 +15,35 @@ class Main {
 		var playerY = 0.0;
 		final playerSpeed = 64.0;
 
-		while (rnd.pollEvents()) {
-			var deltaTime = rnd.getDeltaTime();
+		while (io.pollEvents()) {
+			var deltaTime = io.getDeltaTime();
 
-			if (rnd.wasKeyPressed(KeyCode.Escape)) {
-				rnd.close();
+			if (io.wasKeyPressed(KeyCode.Escape)) {
+				io.close();
 			}
 
-			if (rnd.isKeyHeld(KeyCode.A)) {
+			if (io.isKeyHeld(KeyCode.A)) {
 				playerX -= playerSpeed * deltaTime;
 			}
 
-			if (rnd.isKeyHeld(KeyCode.D)) {
+			if (io.isKeyHeld(KeyCode.D)) {
 				playerX += playerSpeed * deltaTime;
 			}
 
-			if (rnd.isKeyHeld(KeyCode.W)) {
+			if (io.isKeyHeld(KeyCode.W)) {
 				playerY += playerSpeed * deltaTime;
 			}
 
-			if (rnd.isKeyHeld(KeyCode.S)) {
+			if (io.isKeyHeld(KeyCode.S)) {
 				playerY -= playerSpeed * deltaTime;
 			}
 
 			spriteBatch.clear();
 			spriteBatch.add(playerX, playerY, 0, sprite);
 
-			rnd.beginDrawing();
-			rnd.drawSpriteBatch(spriteBatch);
-			rnd.endDrawing();
+			io.beginDrawing();
+			io.drawSpriteBatch(spriteBatch);
+			io.endDrawing();
 		}
 	}
 }
