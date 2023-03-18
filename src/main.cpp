@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "PxlRnd.hpp"
+#include "Input.hpp"
 
 int main(int argc, char **argv)
 {

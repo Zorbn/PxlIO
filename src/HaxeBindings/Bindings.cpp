@@ -5,8 +5,10 @@
 #include <locale>
 #include <codecvt>
 #include "../PxlRnd.hpp"
+#include "../Input.hpp"
 
 static std::unique_ptr<Renderer> rend = nullptr;
+static Input input;
 static auto lastTime = std::chrono::high_resolution_clock::now();
 static float deltaTime = 0.0f;
 static std::unordered_map<int32_t, SpriteBatch> spriteBatches;
@@ -44,8 +46,10 @@ HL_PRIM bool HL_NAME(pxlrnd_poll_events)()
     }
 
     auto currentTime = std::chrono::high_resolution_clock::now();
-    deltaTime = static_cast<float>((currentTime - lastTime).count()) * 0.000001f;
+    deltaTime = static_cast<float>((currentTime - lastTime).count()) * 0.000000001f;
     lastTime = currentTime;
+
+    input.Update();
 
     bool isRunning = true;
     SDL_Event event;
@@ -61,14 +65,11 @@ HL_PRIM bool HL_NAME(pxlrnd_poll_events)()
 
         if (event.type == SDL_KEYDOWN)
         {
-            switch (event.key.keysym.sym)
-            {
-            case SDLK_ESCAPE:
-                isRunning = false;
-                break;
-            default:
-                break;
-            }
+            input.UpdateStateKeyDown((KeyCode)event.key.keysym.sym);
+        }
+        else if (event.type == SDL_KEYUP)
+        {
+            input.UpdateStateKeyUp((KeyCode)event.key.keysym.sym);
         }
         else if (event.type == SDL_QUIT)
         {
@@ -215,6 +216,21 @@ HL_PRIM void HL_NAME(pxlrnd_draw_sprite_batch)(int32_t id)
     rend->DrawSpriteBatch(spriteBatch);
 }
 
+HL_PRIM bool HL_NAME(pxlrnd_is_key_held)(int32_t keyNumber)
+{
+    return input.IsKeyHeld((KeyCode)keyNumber);
+}
+
+HL_PRIM bool HL_NAME(pxlrnd_was_key_pressed)(int32_t keyNumber)
+{
+    return input.WasKeyPressed((KeyCode)keyNumber);
+}
+
+HL_PRIM bool HL_NAME(pxlrnd_was_key_released)(int32_t keyNumber)
+{
+    return input.WasKeyReleased((KeyCode)keyNumber);
+}
+
 DEFINE_PRIM(_VOID, pxlrnd_create, _STRING _I32 _I32 _I32 _I32 _BOOL);
 DEFINE_PRIM(_BOOL, pxlrnd_poll_events, _NO_ARG);
 DEFINE_PRIM(_F32, pxlrnd_get_delta_time, _NO_ARG);
@@ -227,3 +243,6 @@ DEFINE_PRIM(_VOID, pxlrnd_destroy_sprite_batch, _I32);
 DEFINE_PRIM(_VOID, pxlrnd_sprite_batch_clear, _I32);
 DEFINE_PRIM(_VOID, pxlrnd_sprite_batch_add, _I32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32);
 DEFINE_PRIM(_VOID, pxlrnd_draw_sprite_batch, _I32);
+DEFINE_PRIM(_BOOL, pxlrnd_is_key_held, _I32);
+DEFINE_PRIM(_BOOL, pxlrnd_was_key_pressed, _I32);
+DEFINE_PRIM(_BOOL, pxlrnd_was_key_released, _I32);

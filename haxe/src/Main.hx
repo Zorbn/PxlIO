@@ -9,11 +9,31 @@ class Main {
 		sprite.texY = 0;
 		sprite.width = sprite.height = sprite.texWidth = sprite.texHeight = 16;
 
+		var playerX = 0.0;
+		var playerY = 0.0;
+		final playerSpeed = 64.0;
+
 		while (rnd.pollEvents()) {
 			var deltaTime = rnd.getDeltaTime();
 
+			if (rnd.isKeyHeld(KeyCode.KeyA)) {
+				playerX -= playerSpeed * deltaTime;
+			}
+
+			if (rnd.isKeyHeld(KeyCode.KeyD)) {
+				playerX += playerSpeed * deltaTime;
+			}
+
+			if (rnd.isKeyHeld(KeyCode.KeyW)) {
+				playerY += playerSpeed * deltaTime;
+			}
+
+			if (rnd.isKeyHeld(KeyCode.KeyS)) {
+				playerY -= playerSpeed * deltaTime;
+			}
+
 			spriteBatch.clear();
-			spriteBatch.add(64, 64, 0, sprite);
+			spriteBatch.add(playerX, playerY, 0, sprite);
 
 			rnd.beginDrawing();
 			rnd.drawSpriteBatch(spriteBatch);

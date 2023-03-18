@@ -19,6 +19,7 @@ set(
     src/Renderer.hpp
     src/SpriteBatch.hpp
     src/ImageLoader.cpp src/ImageLoader.hpp
+    src/Input.cpp src/Input.hpp
 )
 
 set(

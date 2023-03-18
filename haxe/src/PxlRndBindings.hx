@@ -32,4 +32,16 @@ class PxlRndBindings {
 		texWidth:Single, texHeight:Single, originX:Single, originY:Single, rotation:Single, r:Single, g:Single, b:Single, a:Single, tint:Single) {}
 
 	public static function pxlrnd_draw_sprite_batch(id:Int32) {}
+
+	public static function pxlrnd_is_key_held(keyNumber:Int32):Bool {
+		return false;
+	}
+
+	public static function pxlrnd_was_key_pressed(keyNumber:Int32):Bool {
+		return false;
+	}
+
+	public static function pxlrnd_was_key_released(keyNumber:Int32):Bool {
+		return false;
+	}
 }
