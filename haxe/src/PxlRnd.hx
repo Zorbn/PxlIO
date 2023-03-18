@@ -64,4 +64,24 @@ class PxlRnd {
 
 		return pressedKeys;
 	}
+
+	public function getMouseX():Int32 {
+		return PxlRndBindings.pxlrnd_get_mouse_x();
+	}
+
+	public function getMouseY():Int32 {
+		return PxlRndBindings.pxlrnd_get_mouse_y();
+	}
+
+	public function isMouseButtonHeld(mouseButton:Int32):Bool {
+		return PxlRndBindings.pxlrnd_is_mouse_button_held(mouseButton);
+	}
+
+	public function wasMouseButtonPressed(mouseButton:Int32):Bool {
+		return PxlRndBindings.pxlrnd_was_mouse_button_pressed(mouseButton);
+	}
+
+	public function wasMouseButtonReleased(mouseButton:Int32):Bool {
+		return PxlRndBindings.pxlrnd_was_mouse_button_released(mouseButton);
+	}
 }

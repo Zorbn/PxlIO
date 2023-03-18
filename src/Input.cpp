@@ -22,6 +22,9 @@ void Input::Update()
     pressedKeys.clear();
     releasedKeys.clear();
     allPressedKeys.clear();
+
+    pressedMouseButtons.clear();
+    releasedMouseButtons.clear();
 }
 
 bool Input::IsKeyHeld(KeyCode keyCode)
@@ -42,4 +45,51 @@ bool Input::WasKeyReleased(KeyCode keyCode)
 const std::vector<KeyCode> &Input::GetPressedKeys()
 {
     return allPressedKeys;
+}
+
+int32_t Input::GetMouseX()
+{
+    int32_t x;
+    SDL_GetMouseState(&x, nullptr);
+
+    return x;
+}
+
+int32_t Input::GetMouseY()
+{
+    int32_t y;
+    SDL_GetMouseState(nullptr, &y);
+
+    return y;
+}
+
+void Input::UpdateStateMouseDown(MouseButton mouseButton)
+{
+    if (heldMouseButtons.find(mouseButton) == heldMouseButtons.end())
+    {
+        pressedMouseButtons.insert(mouseButton);
+    }
+
+    heldMouseButtons.insert(mouseButton);
+}
+
+void Input::UpdateStateMouseUp(MouseButton mouseButton)
+{
+    releasedMouseButtons.insert(mouseButton);
+    heldMouseButtons.erase(mouseButton);
+}
+
+bool Input::IsMouseButtonHeld(MouseButton mouseButton)
+{
+    return heldMouseButtons.find(mouseButton) != heldMouseButtons.end();
+}
+
+bool Input::WasMouseButtonPressed(MouseButton mouseButton)
+{
+    return pressedMouseButtons.find(mouseButton) != pressedMouseButtons.end();
+}
+
+bool Input::WasMouseButtonReleased(MouseButton mouseButton)
+{
+    return releasedMouseButtons.find(mouseButton) != releasedMouseButtons.end();
 }

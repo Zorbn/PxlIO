@@ -62,17 +62,23 @@ HL_PRIM bool HL_NAME(pxlrnd_poll_events)()
             }
         }
 
-        if (event.type == SDL_KEYDOWN)
+        switch (event.type)
         {
+        case SDL_KEYDOWN:
             input.UpdateStateKeyDown((KeyCode)event.key.keysym.sym);
-        }
-        else if (event.type == SDL_KEYUP)
-        {
+            break;
+        case SDL_KEYUP:
             input.UpdateStateKeyUp((KeyCode)event.key.keysym.sym);
-        }
-        else if (event.type == SDL_QUIT)
-        {
+            break;
+        case SDL_MOUSEBUTTONDOWN:
+            input.UpdateStateMouseDown((MouseButton)event.button.button);
+            break;
+        case SDL_MOUSEBUTTONUP:
+            input.UpdateStateMouseUp((MouseButton)event.button.button);
+            break;
+        case SDL_QUIT:
             isRunning = false;
+            break;
         }
     }
 
@@ -243,6 +249,31 @@ HL_PRIM vbyte *HL_NAME(pxlrnd_get_pressed_keys)()
     return buffer;
 }
 
+HL_PRIM int32_t HL_NAME(pxlrnd_get_mouse_x)()
+{
+    return input.GetMouseX();
+}
+
+HL_PRIM int32_t HL_NAME(pxlrnd_get_mouse_y)()
+{
+    return input.GetMouseY();
+}
+
+HL_PRIM bool HL_NAME(pxlrnd_is_mouse_button_held)(int32_t mouseButtonNumber)
+{
+    return input.IsMouseButtonHeld((MouseButton)mouseButtonNumber);
+}
+
+HL_PRIM bool HL_NAME(pxlrnd_was_mouse_button_pressed)(int32_t mouseButtonNumber)
+{
+    return input.WasMouseButtonPressed((MouseButton)mouseButtonNumber);
+}
+
+HL_PRIM bool HL_NAME(pxlrnd_was_mouse_button_released)(int32_t mouseButtonNumber)
+{
+    return input.WasMouseButtonReleased((MouseButton)mouseButtonNumber);
+}
+
 DEFINE_PRIM(_VOID, pxlrnd_create, _STRING _I32 _I32 _I32 _I32 _BOOL);
 DEFINE_PRIM(_BOOL, pxlrnd_poll_events, _NO_ARG);
 DEFINE_PRIM(_F32, pxlrnd_get_delta_time, _NO_ARG);
@@ -260,3 +291,8 @@ DEFINE_PRIM(_BOOL, pxlrnd_is_key_held, _I32);
 DEFINE_PRIM(_BOOL, pxlrnd_was_key_pressed, _I32);
 DEFINE_PRIM(_BOOL, pxlrnd_was_key_released, _I32);
 DEFINE_PRIM(_BYTES, pxlrnd_get_pressed_keys, _NO_ARG);
+DEFINE_PRIM(_I32, pxlrnd_get_mouse_x, _NO_ARG);
+DEFINE_PRIM(_I32, pxlrnd_get_mouse_y, _NO_ARG);
+DEFINE_PRIM(_BOOL, pxlrnd_is_mouse_button_held, _I32);
+DEFINE_PRIM(_BOOL, pxlrnd_was_mouse_button_pressed, _I32);
+DEFINE_PRIM(_BOOL, pxlrnd_was_mouse_button_released, _I32);

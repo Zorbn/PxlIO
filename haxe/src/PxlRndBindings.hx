@@ -48,4 +48,24 @@ class PxlRndBindings {
 	public static function pxlrnd_get_pressed_keys():hl.Bytes {
 		return null;
 	}
+
+	public static function pxlrnd_get_mouse_x():Int32 {
+		return 0;
+	}
+
+	public static function pxlrnd_get_mouse_y():Int32 {
+		return 0;
+	}
+
+	public static function pxlrnd_is_mouse_button_held(keyNumber:Int32):Bool {
+		return false;
+	}
+
+	public static function pxlrnd_was_mouse_button_pressed(keyNumber:Int32):Bool {
+		return false;
+	}
+
+	public static function pxlrnd_was_mouse_button_released(keyNumber:Int32):Bool {
+		return false;
+	}
 }

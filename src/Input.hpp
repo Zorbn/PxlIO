@@ -203,9 +203,15 @@ enum KeyCode
     KeyKeypadColon = SDLK_KP_COLON,
 };
 
+enum MouseButton {
+    MouseButtonLeft = SDL_BUTTON_LEFT,
+    MouseButtonMiddle = SDL_BUTTON_MIDDLE,
+    MouseButtonRight = SDL_BUTTON_RIGHT,
+    MouseButtonX1 = SDL_BUTTON_X1,
+    MouseButtonX2 = SDL_BUTTON_X2,
+};
+
 // TODO:
-// - Mouse position
-// - Mouse button held/was pressed/released
 // - Ability to quit the game with a keypress
 // - Rename library to PxlIo since it now includes input
 
@@ -222,9 +228,23 @@ public:
 
     const std::vector<KeyCode> &GetPressedKeys();
 
+    int32_t GetMouseX();
+    int32_t GetMouseY();
+
+    void UpdateStateMouseDown(MouseButton mouseButton);
+    void UpdateStateMouseUp(MouseButton mouseButton);
+
+    bool IsMouseButtonHeld(MouseButton mouseButton);
+    bool WasMouseButtonPressed(MouseButton mouseButton);
+    bool WasMouseButtonReleased(MouseButton mouseButton);
+
   private:
     std::unordered_set<KeyCode> heldKeys;
     std::unordered_set<KeyCode> pressedKeys;
     std::unordered_set<KeyCode> releasedKeys;
     std::vector<KeyCode> allPressedKeys;
+
+    std::unordered_set<MouseButton> heldMouseButtons;
+    std::unordered_set<MouseButton> pressedMouseButtons;
+    std::unordered_set<MouseButton> releasedMouseButtons;
 };

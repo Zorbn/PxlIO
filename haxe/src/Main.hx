@@ -18,19 +18,23 @@ class Main {
 		while (rnd.pollEvents()) {
 			var deltaTime = rnd.getDeltaTime();
 
-			if (rnd.isKeyHeld(KeyCode.KeyA)) {
+			if (rnd.isMouseButtonHeld(MouseButton.Left)) {
+				trace("left held");
+			}
+
+			if (rnd.isKeyHeld(KeyCode.A)) {
 				playerX -= playerSpeed * deltaTime;
 			}
 
-			if (rnd.isKeyHeld(KeyCode.KeyD)) {
+			if (rnd.isKeyHeld(KeyCode.D)) {
 				playerX += playerSpeed * deltaTime;
 			}
 
-			if (rnd.isKeyHeld(KeyCode.KeyW)) {
+			if (rnd.isKeyHeld(KeyCode.W)) {
 				playerY += playerSpeed * deltaTime;
 			}
 
-			if (rnd.isKeyHeld(KeyCode.KeyS)) {
+			if (rnd.isKeyHeld(KeyCode.S)) {
 				playerY -= playerSpeed * deltaTime;
 			}
 
