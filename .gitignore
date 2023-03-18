@@ -2,3 +2,4 @@
 build
 buildWeb
 res/*.spv
+haxe/bin/hl

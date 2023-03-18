@@ -7,7 +7,7 @@
 
 int main(int argc, char **argv)
 {
-    std::shared_ptr<Renderer> rend = PxlRnd::Create("PxlRnd", 640, 480, 320, 240);
+    std::unique_ptr<Renderer> rend = PxlRnd::Create("PxlRnd", 640, 480, 320, 240);
 
     SDL_Window *window = rend->GetWindowPtr();
 

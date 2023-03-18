@@ -27,6 +27,8 @@ struct ViewTransform
 class Renderer
 {
   public:
+    virtual ~Renderer() {}
+
     virtual void ResizeWindow(int32_t windowWidth, int32_t windowHeight) = 0;
     virtual SDL_Window *GetWindowPtr() = 0;
 

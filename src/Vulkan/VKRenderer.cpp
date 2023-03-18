@@ -628,19 +628,26 @@ VKRenderer::~VKRenderer()
 
     vulkanState.swapchain.Cleanup(vulkanState.allocator, vulkanState.device);
 
-    for (auto it = spriteBatchDatas.begin(); it != spriteBatchDatas.end(); it++)
+    for (auto &it = spriteBatchDatas.begin(); it != spriteBatchDatas.end(); it++)
     {
         it->second.Cleanup(vulkanState.device, vulkanState.allocator);
     }
 
+
     screenPipeline.Cleanup(vulkanState.device);
+
+    vkDestroySampler(vulkanState.device, screenColorSampler, nullptr);
+    vkDestroyImageView(vulkanState.device, screenColorImageView, nullptr);
+    screenColorImage.Destroy(vulkanState.allocator);
+
+    vkDestroyImageView(vulkanState.device, screenDepthImageView, nullptr);
+    screenDepthImage.Destroy(vulkanState.allocator);
+
     renderPass.Cleanup(vulkanState.allocator, vulkanState.device);
     screenRenderPass.Cleanup(vulkanState.allocator, vulkanState.device);
 
     ubo.Destroy(vulkanState.allocator);
     screenUbo.Destroy(vulkanState.allocator);
-
-    vkDestroySampler(vulkanState.device, screenColorSampler, nullptr);
 
     screenModel.Destroy(vulkanState.allocator);
 
