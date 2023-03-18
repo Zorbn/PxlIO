@@ -44,4 +44,8 @@ class PxlRndBindings {
 	public static function pxlrnd_was_key_released(keyNumber:Int32):Bool {
 		return false;
 	}
+
+	public static function pxlrnd_get_pressed_keys():hl.Bytes {
+		return null;
+	}
 }

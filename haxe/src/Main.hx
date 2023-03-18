@@ -1,3 +1,5 @@
+import haxe.Int32;
+
 class Main {
 	static function main() {
 		var rnd = new PxlRnd("Rendering Pixels in Haxe", 640, 480, 320, 240);

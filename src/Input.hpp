@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 
 #include <unordered_set>
+#include <vector>
 
 enum KeyCode
 {
@@ -203,7 +204,6 @@ enum KeyCode
 };
 
 // TODO:
-// - Stream of key inputs
 // - Mouse position
 // - Mouse button held/was pressed/released
 // - Ability to quit the game with a keypress
@@ -220,8 +220,11 @@ public:
     bool WasKeyPressed(KeyCode keyCode);
     bool WasKeyReleased(KeyCode keyCode);
 
-private:
+    const std::vector<KeyCode> &GetPressedKeys();
+
+  private:
     std::unordered_set<KeyCode> heldKeys;
     std::unordered_set<KeyCode> pressedKeys;
     std::unordered_set<KeyCode> releasedKeys;
+    std::vector<KeyCode> allPressedKeys;
 };

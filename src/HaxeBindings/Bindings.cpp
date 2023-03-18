@@ -1,11 +1,11 @@
 
 #define HL_NAME(n) PxlRnd_##n
 
+#include "../Input.hpp"
+#include "../PxlRnd.hpp"
+#include <codecvt>
 #include <hl.h>
 #include <locale>
-#include <codecvt>
-#include "../PxlRnd.hpp"
-#include "../Input.hpp"
 
 static std::unique_ptr<Renderer> rend = nullptr;
 static Input input;
@@ -14,7 +14,7 @@ static float deltaTime = 0.0f;
 static std::unordered_map<int32_t, SpriteBatch> spriteBatches;
 static int32_t lastSpriteBatchId = 0;
 
-std::string GetHaxeString(vstring* haxeString)
+std::string GetHaxeString(vstring *haxeString)
 {
     std::wstring wideString = haxeString->bytes;
     std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
@@ -23,8 +23,8 @@ std::string GetHaxeString(vstring* haxeString)
     return string;
 }
 
-HL_PRIM void HL_NAME(pxlrnd_create)(vstring* windowName, int32_t windowWidth,
-    int32_t windowHeight, int32_t viewWidth, int32_t viewHeight, bool enableVsync)
+HL_PRIM void HL_NAME(pxlrnd_create)(vstring *windowName, int32_t windowWidth, int32_t windowHeight, int32_t viewWidth,
+                                    int32_t viewHeight, bool enableVsync)
 {
     if (rend != nullptr)
     {
@@ -33,8 +33,7 @@ HL_PRIM void HL_NAME(pxlrnd_create)(vstring* windowName, int32_t windowWidth,
     }
 
     std::string name = GetHaxeString(windowName);
-    rend = PxlRnd::Create(name.c_str(), windowWidth, windowHeight,
-        viewWidth, viewHeight, enableVsync);
+    rend = PxlRnd::Create(name.c_str(), windowWidth, windowHeight, viewWidth, viewHeight, enableVsync);
 }
 
 HL_PRIM bool HL_NAME(pxlrnd_poll_events)()
@@ -126,8 +125,7 @@ HL_PRIM void HL_NAME(pxlrnd_set_background_color)(float r, float g, float b)
         return;
     }
 
-    rend->SetBackgroundColor(static_cast<float>(r),
-        static_cast<float>(g), static_cast<float>(b));
+    rend->SetBackgroundColor(static_cast<float>(r), static_cast<float>(g), static_cast<float>(b));
 }
 
 HL_PRIM void HL_NAME(pxlrnd_set_screen_background_color)(float r, float g, float b)
@@ -138,12 +136,11 @@ HL_PRIM void HL_NAME(pxlrnd_set_screen_background_color)(float r, float g, float
         return;
     }
 
-    rend->SetScreenBackgroundColor(static_cast<float>(r),
-        static_cast<float>(g), static_cast<float>(b));
+    rend->SetScreenBackgroundColor(static_cast<float>(r), static_cast<float>(g), static_cast<float>(b));
 }
 
-HL_PRIM int32_t HL_NAME(pxlrnd_create_sprite_batch)(vstring* texturePath,
-    int32_t maxSprites, bool smooth, bool enableBlending)
+HL_PRIM int32_t HL_NAME(pxlrnd_create_sprite_batch)(vstring *texturePath, int32_t maxSprites, bool smooth,
+                                                    bool enableBlending)
 {
     if (rend == nullptr)
     {
@@ -152,8 +149,7 @@ HL_PRIM int32_t HL_NAME(pxlrnd_create_sprite_batch)(vstring* texturePath,
     }
 
     std::string texturePathString = GetHaxeString(texturePath);
-    SpriteBatch spriteBatch = rend->CreateSpriteBatch(texturePathString,
-        maxSprites, smooth, enableBlending);
+    SpriteBatch spriteBatch = rend->CreateSpriteBatch(texturePathString, maxSprites, smooth, enableBlending);
     int32_t id = lastSpriteBatchId++;
     spriteBatches.insert(std::make_pair(id, spriteBatch));
 
@@ -179,9 +175,10 @@ HL_PRIM void HL_NAME(pxlrnd_sprite_batch_clear)(int32_t id)
     spriteBatch.Clear();
 }
 
-HL_PRIM void HL_NAME(pxlrnd_sprite_batch_add)(int32_t id, float x, float y, float z,
-    float width, float height, float texX, float texY, float texWidth, float texHeight,
-    float originX, float originY, float rotation, float r, float g, float b, float a, float tint)
+HL_PRIM void HL_NAME(pxlrnd_sprite_batch_add)(int32_t id, float x, float y, float z, float width, float height,
+                                              float texX, float texY, float texWidth, float texHeight, float originX,
+                                              float originY, float rotation, float r, float g, float b, float a,
+                                              float tint)
 {
     SpriteBatch &spriteBatch = spriteBatches.at(id);
 
@@ -231,6 +228,21 @@ HL_PRIM bool HL_NAME(pxlrnd_was_key_released)(int32_t keyNumber)
     return input.WasKeyReleased((KeyCode)keyNumber);
 }
 
+HL_PRIM vbyte *HL_NAME(pxlrnd_get_pressed_keys)()
+{
+    auto &pressedKeys = input.GetPressedKeys();
+
+    vbyte *buffer = hl_alloc_bytes(sizeof(int32_t) * static_cast<int32_t>(pressedKeys.size() + 1));
+    int32_t *intBuffer = reinterpret_cast<int32_t *>(buffer);
+    intBuffer[0] = static_cast<int32_t>(pressedKeys.size());
+    for (int32_t i = 0; i < pressedKeys.size(); i++)
+    {
+        intBuffer[i + 1] = pressedKeys[i];
+    }
+
+    return buffer;
+}
+
 DEFINE_PRIM(_VOID, pxlrnd_create, _STRING _I32 _I32 _I32 _I32 _BOOL);
 DEFINE_PRIM(_BOOL, pxlrnd_poll_events, _NO_ARG);
 DEFINE_PRIM(_F32, pxlrnd_get_delta_time, _NO_ARG);
@@ -241,8 +253,10 @@ DEFINE_PRIM(_VOID, pxlrnd_set_screen_background_color, _F32 _F32 _F32);
 DEFINE_PRIM(_I32, pxlrnd_create_sprite_batch, _STRING _I32 _BOOL _BOOL);
 DEFINE_PRIM(_VOID, pxlrnd_destroy_sprite_batch, _I32);
 DEFINE_PRIM(_VOID, pxlrnd_sprite_batch_clear, _I32);
-DEFINE_PRIM(_VOID, pxlrnd_sprite_batch_add, _I32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32);
+DEFINE_PRIM(_VOID, pxlrnd_sprite_batch_add,
+            _I32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32 _F32);
 DEFINE_PRIM(_VOID, pxlrnd_draw_sprite_batch, _I32);
 DEFINE_PRIM(_BOOL, pxlrnd_is_key_held, _I32);
 DEFINE_PRIM(_BOOL, pxlrnd_was_key_pressed, _I32);
 DEFINE_PRIM(_BOOL, pxlrnd_was_key_released, _I32);
+DEFINE_PRIM(_BYTES, pxlrnd_get_pressed_keys, _NO_ARG);

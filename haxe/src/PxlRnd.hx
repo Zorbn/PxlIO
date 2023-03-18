@@ -49,7 +49,19 @@ class PxlRnd {
 		return PxlRndBindings.pxlrnd_was_key_pressed(key);
 	}
 
-	public static function wasKeyReleased(key:Int32):Bool {
+	public function wasKeyReleased(key:Int32):Bool {
 		return PxlRndBindings.pxlrnd_was_key_released(key);
+	}
+
+	public function getPressedKeys():Array<Int32> {
+		var pressedKeyBytes = PxlRndBindings.pxlrnd_get_pressed_keys();
+		var pressedKeyCount = pressedKeyBytes.getI32(0);
+		var pressedKeys = new Array();
+
+		for (i in 0...pressedKeyCount) {
+			pressedKeys[i] = pressedKeyBytes.getI32((i + 1) * 4);
+		}
+
+		return pressedKeys;
 	}
 }
