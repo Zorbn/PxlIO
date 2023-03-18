@@ -8,7 +8,7 @@
 
 static std::unique_ptr<Renderer> rend = nullptr;
 static auto lastTime = std::chrono::high_resolution_clock::now();
-static double deltaTime = 0.0f;
+static float deltaTime = 0.0f;
 static std::unordered_map<int32_t, SpriteBatch> spriteBatches;
 static int32_t lastSpriteBatchId = 0;
 
@@ -21,17 +21,13 @@ std::string GetHaxeString(vstring* haxeString)
     return string;
 }
 
-HL_PRIM int HL_NAME(get_int)(int x)
-{
-    return x * 2;
-}
-
 HL_PRIM void HL_NAME(pxlrnd_create)(vstring* windowName, int32_t windowWidth,
     int32_t windowHeight, int32_t viewWidth, int32_t viewHeight, bool enableVsync)
 {
     if (rend != nullptr)
     {
-        RUNTIME_ERROR("Only one renderer can exist at a time!");
+        hl_error("Only one renderer can exist at a time!");
+        return;
     }
 
     std::string name = GetHaxeString(windowName);
@@ -41,8 +37,14 @@ HL_PRIM void HL_NAME(pxlrnd_create)(vstring* windowName, int32_t windowWidth,
 
 HL_PRIM bool HL_NAME(pxlrnd_poll_events)()
 {
+    if (rend == nullptr)
+    {
+        hl_error("The renderer isn't active!");
+        return false;
+    }
+
     auto currentTime = std::chrono::high_resolution_clock::now();
-    deltaTime = static_cast<double>((currentTime - lastTime).count()) * 0.000001;
+    deltaTime = static_cast<float>((currentTime - lastTime).count()) * 0.000001f;
     lastTime = currentTime;
 
     bool isRunning = true;
@@ -74,32 +76,67 @@ HL_PRIM bool HL_NAME(pxlrnd_poll_events)()
         }
     }
 
+    if (!isRunning)
+    {
+        rend.reset();
+    }
+
     return isRunning;
 }
 
-HL_PRIM double HL_NAME(pxlrnd_get_delta_time)()
+HL_PRIM float HL_NAME(pxlrnd_get_delta_time)()
 {
+    if (rend == nullptr)
+    {
+        hl_error("The renderer isn't active!");
+        return 0.0f;
+    }
+
     return deltaTime;
 }
 
 HL_PRIM void HL_NAME(pxlrnd_begin_drawing)()
 {
+    if (rend == nullptr)
+    {
+        hl_error("The renderer isn't active!");
+        return;
+    }
+
     rend->BeginDrawing();
 }
 
 HL_PRIM void HL_NAME(pxlrnd_end_drawing)()
 {
+    if (rend == nullptr)
+    {
+        hl_error("The renderer isn't active!");
+        return;
+    }
+
     rend->EndDrawing();
 }
 
-HL_PRIM void HL_NAME(pxlrnd_set_background_color)(double r, double g, double b)
+HL_PRIM void HL_NAME(pxlrnd_set_background_color)(float r, float g, float b)
 {
+    if (rend == nullptr)
+    {
+        hl_error("The renderer isn't active!");
+        return;
+    }
+
     rend->SetBackgroundColor(static_cast<float>(r),
         static_cast<float>(g), static_cast<float>(b));
 }
 
-HL_PRIM void HL_NAME(pxlrnd_set_screen_background_color)(double r, double g, double b)
+HL_PRIM void HL_NAME(pxlrnd_set_screen_background_color)(float r, float g, float b)
 {
+    if (rend == nullptr)
+    {
+        hl_error("The renderer isn't active!");
+        return;
+    }
+
     rend->SetScreenBackgroundColor(static_cast<float>(r),
         static_cast<float>(g), static_cast<float>(b));
 }
@@ -107,6 +144,12 @@ HL_PRIM void HL_NAME(pxlrnd_set_screen_background_color)(double r, double g, dou
 HL_PRIM int32_t HL_NAME(pxlrnd_create_sprite_batch)(vstring* texturePath,
     int32_t maxSprites, bool smooth, bool enableBlending)
 {
+    if (rend == nullptr)
+    {
+        hl_error("The renderer isn't active!");
+        return -1;
+    }
+
     std::string texturePathString = GetHaxeString(texturePath);
     SpriteBatch spriteBatch = rend->CreateSpriteBatch(texturePathString,
         maxSprites, smooth, enableBlending);
@@ -118,6 +161,12 @@ HL_PRIM int32_t HL_NAME(pxlrnd_create_sprite_batch)(vstring* texturePath,
 
 HL_PRIM void HL_NAME(pxlrnd_destroy_sprite_batch)(int32_t id)
 {
+    if (rend == nullptr)
+    {
+        hl_error("The renderer isn't active!");
+        return;
+    }
+
     SpriteBatch &spriteBatch = spriteBatches.at(id);
     rend->DestroySpriteBatch(spriteBatch);
     spriteBatches.erase(id);
@@ -156,18 +205,23 @@ HL_PRIM void HL_NAME(pxlrnd_sprite_batch_add)(int32_t id, float x, float y, floa
 
 HL_PRIM void HL_NAME(pxlrnd_draw_sprite_batch)(int32_t id)
 {
+    if (rend == nullptr)
+    {
+        hl_error("The renderer isn't active!");
+        return;
+    }
+
     SpriteBatch &spriteBatch = spriteBatches.at(id);
     rend->DrawSpriteBatch(spriteBatch);
 }
 
-DEFINE_PRIM(_I32, get_int, _I32);
 DEFINE_PRIM(_VOID, pxlrnd_create, _STRING _I32 _I32 _I32 _I32 _BOOL);
 DEFINE_PRIM(_BOOL, pxlrnd_poll_events, _NO_ARG);
-DEFINE_PRIM(_F64, pxlrnd_get_delta_time, _NO_ARG);
+DEFINE_PRIM(_F32, pxlrnd_get_delta_time, _NO_ARG);
 DEFINE_PRIM(_VOID, pxlrnd_begin_drawing, _NO_ARG);
 DEFINE_PRIM(_VOID, pxlrnd_end_drawing, _NO_ARG);
-DEFINE_PRIM(_VOID, pxlrnd_set_background_color, _F64 _F64 _F64);
-DEFINE_PRIM(_VOID, pxlrnd_set_screen_background_color, _F64 _F64 _F64);
+DEFINE_PRIM(_VOID, pxlrnd_set_background_color, _F32 _F32 _F32);
+DEFINE_PRIM(_VOID, pxlrnd_set_screen_background_color, _F32 _F32 _F32);
 DEFINE_PRIM(_I32, pxlrnd_create_sprite_batch, _STRING _I32 _BOOL _BOOL);
 DEFINE_PRIM(_VOID, pxlrnd_destroy_sprite_batch, _I32);
 DEFINE_PRIM(_VOID, pxlrnd_sprite_batch_clear, _I32);

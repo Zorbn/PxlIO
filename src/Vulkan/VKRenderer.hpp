@@ -160,7 +160,7 @@ class VKRenderer : public Renderer
   public:
     VKRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight, int32_t viewWidth,
                int32_t viewHeight, bool enableVsync = true);
-    ~VKRenderer();
+    ~VKRenderer() override;
 
     void ResizeWindow(int width, int height) override;
     SDL_Window *GetWindowPtr() override;

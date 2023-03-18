@@ -1,40 +1,43 @@
-import hl.F32;
 import haxe.Int32;
 
-@:hlNative("PxlRnd")
 class PxlRnd {
-	public static function get_int(x:Int):Int {
-		return 0;
+    public function new(windowName:String, windowWidth:Int32, windowHeight:Int32, viewWidth:Int32, viewHeight:Int32, enableVsync:Bool = true) {
+        PxlRndBindings.pxlrnd_create(windowName, windowWidth, windowHeight, viewWidth, viewHeight, enableVsync);
+    }
+
+    public function pollEvents():Bool {
+        return PxlRndBindings.pxlrnd_poll_events();
+    }
+
+    public function getDeltaTime() {
+        return PxlRndBindings.pxlrnd_get_delta_time();
+    }
+
+    public function beginDrawing() {
+        PxlRndBindings.pxlrnd_begin_drawing();
+    }
+
+    public function endDrawing() {
+        PxlRndBindings.pxlrnd_end_drawing();
+    }
+
+    public function setBackgroundColor(r:Single, g:Single, b:Single) {
+        PxlRndBindings.pxlrnd_set_background_color(r, g, b);
+    }
+
+    public function setScreenBackgroundColor(r:Single, g:Single, b:Single) {
+        PxlRndBindings.pxlrnd_set_screen_background_color(r, g, b);
+    }
+
+	public function createSpriteBatch(texturePath:String, maxSprites:Int32, smooth:Bool = false, enableBlending:Bool = false):SpriteBatch {
+		return new SpriteBatch(PxlRndBindings.pxlrnd_create_sprite_batch(texturePath, maxSprites, smooth, enableBlending));
 	}
 
-	public static function pxlrnd_create(windowName:String, windowWidth:Int32, windowHeight:Int32, viewWidth:Int32, viewHeight:Int32, enableVsync:Bool):Void {}
+	public function destroySpriteBatch(spriteBatch:SpriteBatch) {
+        PxlRndBindings.pxlrnd_destroy_sprite_batch(spriteBatch.id);
+    }
 
-	public static function pxlrnd_poll_events():Bool {
-		return false;
-	}
-
-	public static function pxlrnd_get_delta_time():Float {
-		return 0.0;
-	}
-
-	public static function pxlrnd_begin_drawing():Void {}
-
-	public static function pxlrnd_end_drawing():Void {}
-
-	public static function pxlrnd_set_background_color(r:Float, g:Float, b:Float) {}
-
-	public static function pxlrnd_set_screen_background_color(r:Float, g:Float, b:Float) {}
-
-	public static function pxlrnd_create_sprite_batch(texturePath:String, maxSprites:Int32, smooth:Bool, enableBlending:Bool):Int32 {
-		return 0;
-	}
-
-	public static function pxlrnd_destroy_sprite_batch(id:Int32) {}
-
-	public static function pxlrnd_sprite_batch_clear(id:Int32) {}
-
-	public static function pxlrnd_sprite_batch_add(id:Int32, x:Single, y:Single, z:Single, width:Single, height:Single, texX:Single, texY:Single,
-		texWidth:Single, texHeight:Single, originX:Single, originY:Single, rotation:Single, r:Single, g:Single, b:Single, a:Single, tint:Single) {}
-
-	public static function pxlrnd_draw_sprite_batch(id:Int32) {}
+	public function drawSpriteBatch(spriteBatch:SpriteBatch) {
+        PxlRndBindings.pxlrnd_draw_sprite_batch(spriteBatch.id);
+    }
 }

@@ -637,11 +637,6 @@ VKRenderer::~VKRenderer()
     screenPipeline.Cleanup(vulkanState.device);
 
     vkDestroySampler(vulkanState.device, screenColorSampler, nullptr);
-    vkDestroyImageView(vulkanState.device, screenColorImageView, nullptr);
-    screenColorImage.Destroy(vulkanState.allocator);
-
-    vkDestroyImageView(vulkanState.device, screenDepthImageView, nullptr);
-    screenDepthImage.Destroy(vulkanState.allocator);
 
     renderPass.Cleanup(vulkanState.allocator, vulkanState.device);
     screenRenderPass.Cleanup(vulkanState.allocator, vulkanState.device);

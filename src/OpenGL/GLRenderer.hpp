@@ -32,7 +32,7 @@ class GLRenderer : public Renderer
     GLRenderer(const std::string &windowName, int32_t windowWidth, int32_t windowHeight, int32_t viewWidth,
                int32_t viewHeight, bool enableVsync = true);
 
-    ~GLRenderer();
+    ~GLRenderer() override;
     void ResizeWindow(int32_t windowWidth, int32_t windowHeight) override;
     SDL_Window *GetWindowPtr() override;
 
