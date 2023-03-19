@@ -5,6 +5,7 @@
 
 #include "PxlIO.hpp"
 #include "Input.hpp"
+#include "Audio.hpp"
 
 int main(int argc, char **argv)
 {
@@ -18,6 +19,8 @@ int main(int argc, char **argv)
     auto spriteBatch = rend->CreateSpriteBatch("res/tiles.png", 50000);
 
     auto lastTime = std::chrono::high_resolution_clock::now();
+
+    auto audio = Audio("res/explosion.wav");
 
     bool isRunning = true;
     int32_t frame = 0;
@@ -43,6 +46,9 @@ int main(int argc, char **argv)
             {
                 switch (event.key.keysym.sym)
                 {
+                case SDLK_w:
+                    audio.Play();
+                    break;
                 case SDLK_ESCAPE:
                     isRunning = false;
                     break;

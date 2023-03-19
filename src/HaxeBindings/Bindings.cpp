@@ -27,7 +27,7 @@ std::string GetHaxeString(vstring *haxeString)
 HL_PRIM void HL_NAME(pxlio_create)(vstring *windowName, int32_t windowWidth, int32_t windowHeight, int32_t viewWidth,
                                     int32_t viewHeight, bool enableVsync)
 {
-    if (rend != nullptr)
+    if (rend)
     {
         hl_error("Only one renderer can exist at a time!");
         return;
@@ -40,7 +40,7 @@ HL_PRIM void HL_NAME(pxlio_create)(vstring *windowName, int32_t windowWidth, int
 
 HL_PRIM bool HL_NAME(pxlio_poll_events)()
 {
-    if (rend == nullptr)
+    if (!rend)
     {
         hl_error("The renderer isn't active!");
         return false;
@@ -93,7 +93,7 @@ HL_PRIM bool HL_NAME(pxlio_poll_events)()
 
 HL_PRIM float HL_NAME(pxlio_get_delta_time)()
 {
-    if (rend == nullptr)
+    if (!rend)
     {
         hl_error("The renderer isn't active!");
         return 0.0f;
@@ -104,7 +104,7 @@ HL_PRIM float HL_NAME(pxlio_get_delta_time)()
 
 HL_PRIM void HL_NAME(pxlio_begin_drawing)()
 {
-    if (rend == nullptr)
+    if (!rend)
     {
         hl_error("The renderer isn't active!");
         return;
@@ -115,7 +115,7 @@ HL_PRIM void HL_NAME(pxlio_begin_drawing)()
 
 HL_PRIM void HL_NAME(pxlio_end_drawing)()
 {
-    if (rend == nullptr)
+    if (!rend)
     {
         hl_error("The renderer isn't active!");
         return;
@@ -126,7 +126,7 @@ HL_PRIM void HL_NAME(pxlio_end_drawing)()
 
 HL_PRIM void HL_NAME(pxlio_set_background_color)(float r, float g, float b)
 {
-    if (rend == nullptr)
+    if (!rend)
     {
         hl_error("The renderer isn't active!");
         return;
@@ -137,7 +137,7 @@ HL_PRIM void HL_NAME(pxlio_set_background_color)(float r, float g, float b)
 
 HL_PRIM void HL_NAME(pxlio_set_screen_background_color)(float r, float g, float b)
 {
-    if (rend == nullptr)
+    if (!rend)
     {
         hl_error("The renderer isn't active!");
         return;
@@ -149,7 +149,7 @@ HL_PRIM void HL_NAME(pxlio_set_screen_background_color)(float r, float g, float 
 HL_PRIM int32_t HL_NAME(pxlio_create_sprite_batch)(vstring *texturePath, int32_t maxSprites, bool smooth,
                                                     bool enableBlending)
 {
-    if (rend == nullptr)
+    if (!rend)
     {
         hl_error("The renderer isn't active!");
         return -1;
@@ -165,7 +165,7 @@ HL_PRIM int32_t HL_NAME(pxlio_create_sprite_batch)(vstring *texturePath, int32_t
 
 HL_PRIM void HL_NAME(pxlio_destroy_sprite_batch)(int32_t id)
 {
-    if (rend == nullptr)
+    if (!rend)
     {
         hl_error("The renderer isn't active!");
         return;
@@ -210,7 +210,7 @@ HL_PRIM void HL_NAME(pxlio_sprite_batch_add)(int32_t id, float x, float y, float
 
 HL_PRIM void HL_NAME(pxlio_draw_sprite_batch)(int32_t id)
 {
-    if (rend == nullptr)
+    if (!rend)
     {
         hl_error("The renderer isn't active!");
         return;

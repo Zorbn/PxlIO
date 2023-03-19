@@ -7,7 +7,7 @@ enable_testing()
 
 add_subdirectory(deps/glad)
 
-set(GENERATE_HAXE_BINDINGS ON)
+set(GENERATE_HAXE_BINDINGS OFF)
 
 if(GENERATE_HAXE_BINDINGS)
     set(HASHLINKPATH C:/Users/Nic/Desktop/Other/Dev/Haxe/HashLink)
@@ -20,6 +20,7 @@ set(
     src/SpriteBatch.hpp
     src/ImageLoader.cpp src/ImageLoader.hpp
     src/Input.cpp src/Input.hpp
+    src/Audio.cpp src/Audio.hpp
 )
 
 set(
@@ -71,8 +72,9 @@ endif()
 
 if(EMSCRIPTEN)
     set_target_properties(PxlIO PROPERTIES LINK_FLAGS "-O2 -sASYNCIFY -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 \
-        -sMAX_WEBGL_VERSION=2 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='\"png\"' --preload-file ../res \
-        --profiling")
+        -sMAX_WEBGL_VERSION=2 -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sUSE_SDL_MIXER=2 -s SDL2_IMAGE_FORMATS='\"png\"' \
+        -sEXPORTED_RUNTIME_METHODS=['UTF8ToString'] -sSDL2_MIXER_FORMATS='\"wav\"' -dMUSIC_WAV \
+        --use-preload-plugins --preload-file ../res --profiling")
 endif()
 
 if(WIN32)
@@ -97,6 +99,7 @@ target_link_libraries(
 if(NOT EMSCRIPTEN)
     find_package(SDL2 CONFIG REQUIRED)
     find_package(SDL2_image CONFIG REQUIRED)
+    find_package(SDL2_mixer CONFIG REQUIRED)
 
     find_package(Vulkan REQUIRED)
     find_package(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
@@ -106,6 +109,7 @@ if(NOT EMSCRIPTEN)
         $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
         $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
         $<IF:$<TARGET_EXISTS:SDL2_image::SDL2_image>,SDL2_image::SDL2_image,SDL2_image::SDL2_image-static>
+        $<IF:$<TARGET_EXISTS:SDL2_mixer::SDL2_mixer>,SDL2_mixer::SDL2_mixer,SDL2_mixer::SDL2_mixer-static>
 
         glad
 

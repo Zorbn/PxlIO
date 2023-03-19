@@ -105,7 +105,7 @@ GLRenderer::GLRenderer(const std::string &windowName, int32_t windowWidth, int32
     : windowWidth(windowWidth), windowHeight(windowHeight), viewWidth(viewWidth), viewHeight(viewHeight)
 {
 
-    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0)
     {
         RUNTIME_ERROR("Failed to initialize SDL!");
     }
