@@ -1,3 +1,5 @@
+package pxlio;
+
 import haxe.Int32;
 
 @:hlNative("PxlIO")

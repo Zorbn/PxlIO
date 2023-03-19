@@ -1,3 +1,5 @@
+package pxlio;
+
 class Sprite {
     public var width: Single;
     public var height: Single;

@@ -1,4 +1,4 @@
-import haxe.Int32;
+import pxlio.*;
 
 class Main {
 	static function main() {
