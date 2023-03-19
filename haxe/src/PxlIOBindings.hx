@@ -70,4 +70,14 @@ class PxlIOBindings {
 	}
 
 	public static function pxlio_close() {}
+
+	public static function pxlio_audio_constructor(path:String):Int32 {
+		return 0;
+	}
+
+	public static function pxlio_audio_set_volume(id:Int32, volume:Single) {}
+
+	public static function pxlio_audio_play(id:Int32) {}
+
+	public static function pxlio_audio_destroy(id:Int32) {}
 }

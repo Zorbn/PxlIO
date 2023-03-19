@@ -15,6 +15,8 @@ class Main {
 		var playerY = 0.0;
 		final playerSpeed = 64.0;
 
+		var audio = new Audio("res/explosion.wav");
+
 		while (io.pollEvents()) {
 			var deltaTime = io.getDeltaTime();
 
@@ -23,6 +25,7 @@ class Main {
 			}
 
 			if (io.isKeyHeld(KeyCode.A)) {
+				audio.play();
 				playerX -= playerSpeed * deltaTime;
 			}
 

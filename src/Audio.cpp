@@ -14,6 +14,12 @@ Audio::Audio(std::string path)
     jsAudioPath = path;
     jsAudioVolume = 1.0f;
 #else
+    if (!isMixerOpen && Mix_OpenAudio(mixerFrequency, mixerFormat,
+        mixerChannelCount, mixerChunkSize) >= 0)
+    {
+        isMixerOpen = true;
+    }
+
     chunk = Mix_LoadWAV(path.c_str());
     if (!chunk)
     {
@@ -36,12 +42,6 @@ void Audio::Play()
 #ifdef EMSCRIPTEN
     JsPlay(jsAudioPath.c_str(), jsAudioVolume);
 #else
-    if (!isMixerOpen && Mix_OpenAudio(mixerFrequency, mixerFormat,
-        mixerChannelCount, mixerChunkSize) >= 0)
-    {
-        isMixerOpen = true;
-    }
-
     Mix_PlayChannel(-1, chunk, 0);
 #endif
 }

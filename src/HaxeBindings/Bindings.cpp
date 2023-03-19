@@ -1,19 +1,26 @@
 
 #define HL_NAME(n) PxlIO_##n
 
-#include "../Input.hpp"
-#include "../PxlIO.hpp"
 #include <codecvt>
 #include <hl.h>
 #include <locale>
+#include "../PxlIO.hpp"
+#include "../Input.hpp"
+#include "../Audio.hpp"
 
 static std::unique_ptr<Renderer> rend = nullptr;
 static bool isRunning = false;
+
 static Input input;
+
 static auto lastTime = std::chrono::high_resolution_clock::now();
 static float deltaTime = 0.0f;
+
 static std::unordered_map<int32_t, SpriteBatch> spriteBatches;
 static int32_t lastSpriteBatchId = 0;
+
+static std::unordered_map<int32_t, Audio> audios;
+static int32_t lastAudioId = 0;
 
 std::string GetHaxeString(vstring *haxeString)
 {
@@ -280,6 +287,35 @@ HL_PRIM void HL_NAME(pxlio_close)()
     isRunning = false;
 }
 
+HL_PRIM int32_t HL_NAME(pxlio_audio_constructor)(vstring *path)
+{
+    std::string pathString = GetHaxeString(path);
+    Audio audio = Audio(pathString);
+    int32_t id = lastAudioId++;
+    audios.insert(std::make_pair(id, audio));
+
+    return id;
+}
+
+HL_PRIM void HL_NAME(pxlio_audio_set_volume)(int32_t id, float volume)
+{
+    Audio &audio = audios.at(id);
+    audio.SetVolume(volume);
+}
+
+HL_PRIM void HL_NAME(pxlio_audio_play)(int32_t id)
+{
+    Audio &audio = audios.at(id);
+    audio.Play();
+}
+
+HL_PRIM void HL_NAME(pxlio_audio_destroy)(int32_t id)
+{
+    Audio &audio = audios.at(id);
+    audio.Destroy();
+    audios.erase(id);
+}
+
 DEFINE_PRIM(_VOID, pxlio_create, _STRING _I32 _I32 _I32 _I32 _BOOL);
 DEFINE_PRIM(_BOOL, pxlio_poll_events, _NO_ARG);
 DEFINE_PRIM(_F32, pxlio_get_delta_time, _NO_ARG);
@@ -303,3 +339,7 @@ DEFINE_PRIM(_BOOL, pxlio_is_mouse_button_held, _I32);
 DEFINE_PRIM(_BOOL, pxlio_was_mouse_button_pressed, _I32);
 DEFINE_PRIM(_BOOL, pxlio_was_mouse_button_released, _I32);
 DEFINE_PRIM(_VOID, pxlio_close, _NO_ARG);
+DEFINE_PRIM(_I32, pxlio_audio_constructor, _STRING);
+DEFINE_PRIM(_VOID, pxlio_audio_set_volume, _I32 _F32);
+DEFINE_PRIM(_VOID, pxlio_audio_play, _I32);
+DEFINE_PRIM(_VOID, pxlio_audio_destroy, _I32);

@@ -7,7 +7,7 @@ enable_testing()
 
 add_subdirectory(deps/glad)
 
-set(GENERATE_HAXE_BINDINGS OFF)
+set(GENERATE_HAXE_BINDINGS ON)
 
 if(GENERATE_HAXE_BINDINGS)
     set(HASHLINKPATH C:/Users/Nic/Desktop/Other/Dev/Haxe/HashLink)
@@ -78,7 +78,7 @@ if(EMSCRIPTEN)
 endif()
 
 if(WIN32)
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMTD")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT")
 endif()
 
 # Save the length of the source path, which is used to truncate the __FILE__ macro.
@@ -86,7 +86,7 @@ string(LENGTH "${CMAKE_SOURCE_DIR}/" SOURCE_PATH_SIZE)
 add_definitions("-DSOURCE_PATH_SIZE=${SOURCE_PATH_SIZE}")
 
 # Find packages, the following line is only necessary for VCPKG users.
-set(VCPKG_TARGET_TRIPLET x64-windows)
+set(VCPKG_TARGET_TRIPLET x64-windows-static)
 include($ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake)
 
 find_package(glm CONFIG REQUIRED)
