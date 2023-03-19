@@ -7,7 +7,7 @@ enable_testing()
 
 add_subdirectory(deps/glad)
 
-set(GENERATE_HAXE_BINDINGS ON)
+set(GENERATE_HAXE_BINDINGS OFF)
 
 if(GENERATE_HAXE_BINDINGS)
     set(HASHLINKPATH C:/Users/Nic/Desktop/Other/Dev/Haxe/HashLink)

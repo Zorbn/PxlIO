@@ -1,10 +1,18 @@
 #include "Audio.hpp"
 
 #ifdef EMSCRIPTEN
-EM_JS(void, JsPlay, (const char *path, float volume), {
-    let audio = new Audio(Module.UTF8ToString(path));
+EM_JS(void, JsOpenMixer, (), { Module.pxlrnd_mixer = {}; });
+
+EM_JS(void, JsPlayAudio, (const char *path, float volume), {
+    const pathString = Module.UTF8ToString(path);
+    let audio = Module.pxlrnd_mixer[pathString];
     audio.volume = volume;
     audio.play();
+});
+
+EM_JS(void, JsLoadAudio, (const char *path), {
+    const pathString = Module.UTF8ToString(path);
+    Module.pxlrnd_mixer[pathString] = new Audio(pathString);
 });
 #endif
 
@@ -13,6 +21,14 @@ Audio::Audio(std::string path)
 #ifdef EMSCRIPTEN
     jsAudioPath = path;
     jsAudioVolume = 1.0f;
+
+    if (!isMixerOpen)
+    {
+        JsOpenMixer();
+        isMixerOpen = true;
+    }
+
+    JsLoadAudio(path.c_str());
 #else
     if (!isMixerOpen && Mix_OpenAudio(mixerFrequency, mixerFormat,
         mixerChannelCount, mixerChunkSize) >= 0)
@@ -40,7 +56,7 @@ void Audio::SetVolume(float volume)
 void Audio::Play()
 {
 #ifdef EMSCRIPTEN
-    JsPlay(jsAudioPath.c_str(), jsAudioVolume);
+    JsPlayAudio(jsAudioPath.c_str(), jsAudioVolume);
 #else
     Mix_PlayChannel(-1, chunk, 0);
 #endif
